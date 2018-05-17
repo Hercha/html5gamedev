@@ -2,20 +2,58 @@ class Game {
     constructor() {
         this.canvas = document.getElementById("game");
         this.context = this.canvas.getContext("2d");
+        this.sprites = [];
         
         this.spriteImage = new Image();
         this.spriteImage.src = "flower.png";
         
         const game = this;
-        this.spriteImage.onload = function(event) {
-            const options = {
-                context: game.context,
-                width: this.width,
-                height: this.height,
-                image: this
-            }
-            game.sprite = new Sprite(options);
-            game.sprite.render();
+        this.spriteImage.onload = function() {
+            game.lastRefreshTime = Date.now();
+            game.spawn();
+            game.refresh();
+        }
+    }
+    
+    spawn() {
+        const sprite = new Sprite({
+           context: this.context,
+            x: Math.random() * this.canvas.width,
+            y: Math.random() * this.canvas.height,
+            width: this.spriteImage.width,
+            height: this.spriteImage.height,
+            image: this.spriteImage
+        });
+        
+        this.sprites.push(sprite);
+        this.sinceLastSpawn = 0;
+    }
+    
+    refresh() {
+        const now = Date.now();
+        const dt = (now - this.lastRefreshTime)/1000.0;
+        
+        this.update(dt);
+        this.render();
+        
+        this.lastRefreshTime = now;
+        
+        const game = this;
+        requestAnimationFrame(function() {
+            game.refresh();
+        });
+    }
+    
+    update(dt) {
+        this.sinceLastSpawn += dt;
+        if(this.sinceLastSpawn > 1) {
+            this.spawn();
+        }
+    }
+    
+    render() {
+        for(let sprite of this.sprites) {
+            sprite.render();
         }
     }
 }
@@ -26,9 +64,11 @@ class Sprite {
         this.width = options.width;
         this.height = options.height;
         this.image = options.image;
+        this.x = options.x;
+        this.y = options.y;
     }
     
     render() {
-        this.context.drawImage(this.image, 200, 100);
+        this.context.drawImage(this.image, this.x, this.y);
     }
 }
