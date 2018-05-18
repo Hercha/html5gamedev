@@ -2,6 +2,7 @@ class Game {
     constructor() {
         this.canvas = document.getElementById("game");
         this.context = this.canvas.getContext("2d");
+        this.context.font = "30px Verdana";
         this.sprites = [];
         
         this.spriteImage = new Image();
@@ -9,10 +10,52 @@ class Game {
         
         const game = this;
         this.spriteImage.onload = function() {
-            game.lastRefreshTime = Date.now();
-            game.spawn();
-            game.refresh();
+            game.init();
         }
+    }
+    
+    init() {
+        this.score = 0;
+        this.lastRefreshTime = Date.now();
+        this.spawn();
+        this.refresh();
+        
+        const game = this;
+        
+        function tap(evt) {
+            game.tap(evt);
+        }
+        
+        if('ontouchstart' in window) {
+            this.canvas.addEventListener("touchstart", tap);
+        } else {
+            this.canvas.addEventListener("mousedown", tap);
+        }
+    }
+    
+    tap(evt) {
+        const mousePos = this.getMousePos(evt);
+        
+        for(let sprite of this.sprites) {
+            if(sprite.hitTest(mousePos)) {
+               sprite.kill = true;
+               this.score++;
+            }
+        }
+    }
+    
+    getMousePos(evt) {
+        const rect = this.canvas.getBoundingClientRect();
+        const clientX = evt.targetTouches ? evt.targetTouches[0].pageX : evt.clientX;
+        const clientY = evt.targetTouches ? evt.targetTouches[0].pageY : evt.clientY;
+        
+        const canvasScale = this.canvas.width / this.canvas.offsetWidth;
+        const loc = {};
+        
+        loc.x = (clientX - rect.left) * canvasScale;
+        loc.y = (clientY - rect.top) * canvasScale;
+        
+        return loc;
     }
     
     refresh() {
@@ -78,9 +121,12 @@ class Game {
     
     render() {
         this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        
         for(let sprite of this.sprites) {
             sprite.render();
         }
+        
+        this.context.fillText("Score: " + this.score, 150, 30);
     }
 }
 
@@ -92,6 +138,7 @@ class Sprite {
         this.image = options.image;
         this.x = options.x;
         this.y = options.y;
+        this.anchor = (options.anchor == null) ? { x: 0.5, y: 0.5 } : options.anchor;
         this.states = options.states;
         this.state = 0;
         this.scale = (options.scale == null) ? 1.0 : options.scale;
@@ -111,6 +158,22 @@ class Sprite {
             result = this.states[this.stateIndex];
             
             return result;
+        }
+    }
+    
+    hitTest(pt) {
+        const centre = { x: this.x, y: this.y };
+        const radius = (this.width * this.scale) / 2;
+        // Now test if the pt is in the circle
+        const dist = distanceBetweenPoints(pt, centre);
+        
+        return (dist<radius);
+        
+        function distanceBetweenPoints(a, b) {
+            var x = a.x - b.x;
+            var y = a.y - b.y;
+            
+            return Math.sqrt(x * x + y * y);
         }
     }
     
@@ -161,8 +224,8 @@ class Sprite {
             0,
             this.width,
             this.height,
-            this.x,
-            this.y,
+            this.x - this.width * this.scale * this.anchor.x,
+            this.y - this.height * this.scale * this.anchor.y,
             this.width * this.scale,
             this.height * this.scale);
         
