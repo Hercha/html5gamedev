@@ -5,13 +5,29 @@ class Game {
         this.context.font = "30px Verdana";
         this.sprites = [];
         
-        this.spriteImage = new Image();
-        this.spriteImage.src = "flower.png";
-        
         const game = this;
-        this.spriteImage.onload = function() {
-            game.init();
-        }
+        this.loadJSON("flowers", function(data, game) {
+            game.spriteData = JSON.parse(data);
+            game.spriteImage = new Image();
+            game.spriteImage.src = game.spriteData.meta.image;
+            game.spriteImage.onload = function() {
+                game.init();
+            }
+        })
+    }
+    
+    loadJSON(json, callback) {
+        var xobj = new XMLHttpRequest();
+        xobj.overrideMimeType("application/json");
+        xobj.open('GET', json + '.json', true); // Replace 'my_data' with the path to your file
+        const game = this;
+        xobj.onreadystatechange = function() {
+            if(xobj.readyState == 4 && xobj.status == "200") {
+                // Required use of an anonymous callback as .open will NOT return a value but simply returns undefined in asynchronous mode
+                callback(xobj.responseText, game);
+            }
+        };
+        xobj.send(null);
     }
     
     init() {
@@ -27,21 +43,25 @@ class Game {
         }
         
         if('ontouchstart' in window) {
-            this.canvas.addEventListener("touchstart", tap);
+            this.canvas.addEventListener("touchstart", tap, supportsPassive ? { passive:true } : false );
         } else {
             this.canvas.addEventListener("mousedown", tap);
         }
     }
     
-    tap(evt) {
-        const mousePos = this.getMousePos(evt);
+    refresh() {
+        const now = Date.now();
+        const dt = (now - this.lastRefreshTime)/1000.0;
         
-        for(let sprite of this.sprites) {
-            if(sprite.hitTest(mousePos)) {
-               sprite.kill = true;
-               this.score++;
-            }
-        }
+        this.update(dt);
+        this.render();
+        
+        this.lastRefreshTime = now;
+        
+        const game = this;
+        requestAnimationFrame(function() {
+            game.refresh();
+        });
     }
     
     getMousePos(evt) {
@@ -58,19 +78,15 @@ class Game {
         return loc;
     }
     
-    refresh() {
-        const now = Date.now();
-        const dt = (now - this.lastRefreshTime)/1000.0;
+    tap(evt) {
+        const mousePos = this.getMousePos(evt);
         
-        this.update(dt);
-        this.render();
-        
-        this.lastRefreshTime = now;
-        
-        const game = this;
-        requestAnimationFrame(function() {
-            game.refresh();
-        });
+        for(let sprite of this.sprites) {
+            if(sprite.hitTest(mousePos)) {
+               sprite.kill = true;
+               this.score++;
+            }
+        }
     }
     
     update(dt) {
@@ -101,12 +117,15 @@ class Game {
     }
     
     spawn() {
+        const index = Math.floor(Math.random() * 5);
+        const frame = this.spriteData.frames[index].frame;
         const sprite = new Sprite({
             context: this.context,
             x: Math.random() * this.canvas.width,
             y: Math.random() * this.canvas.height,
-            width: this.spriteImage.width,
-            height: this.spriteImage.height,
+            index: index,
+            frame: frame,
+            anchor: { x:0.5, y:0.5 },
             image: this.spriteImage,
             states: [ 
                     { mode:"spawn", duration: 0.5 },
@@ -133,9 +152,9 @@ class Game {
 class Sprite {
     constructor(options) {
         this.context = options.context;
-        this.width = options.width;
-        this.height = options.height;
         this.image = options.image;
+        this.index = options.index;
+        this.frame = options.frame;
         this.x = options.x;
         this.y = options.y;
         this.anchor = (options.anchor == null) ? { x: 0.5, y: 0.5 } : options.anchor;
@@ -163,7 +182,7 @@ class Sprite {
     
     hitTest(pt) {
         const centre = { x: this.x, y: this.y };
-        const radius = (this.width * this.scale) / 2;
+        const radius = (this.frame.w * this.scale) / 2;
         // Now test if the pt is in the circle
         const dist = distanceBetweenPoints(pt, centre);
         
@@ -220,14 +239,14 @@ class Sprite {
         
         this.context.drawImage(
             this.image, 
-            0, 
-            0,
-            this.width,
-            this.height,
-            this.x - this.width * this.scale * this.anchor.x,
-            this.y - this.height * this.scale * this.anchor.y,
-            this.width * this.scale,
-            this.height * this.scale);
+            this.frame.x,
+            this.frame.y,
+            this.frame.w,
+            this.frame.h,
+            this.x - this.frame.w * this.scale * this.anchor.x,
+            this.y - this.frame.h * this.scale * this.anchor.y,
+            this.frame.w * this.scale,
+            this.frame.h * this.scale);
         
         this.context.globalAlpha = alpha;
     }
