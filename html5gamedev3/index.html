@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>HTML5 Game Development</title>
+    <style>
+        html.body {
+            font-family: Gotham, "Helvetica Neue", Helvetica, Arial, "sans-serif";
+            font-size: 12px;
+        }
+        button {
+            background: aquamarine;
+            color: #000;
+            padding: 10px 10px;
+            border: none;
+            border-radius: 5px;
+            margin: 20px;
+        }
+        #controls {
+            position: absolute;
+            width: 300px;
+            left: 0px;
+            top: 0px;
+            border: 1px solid #000;
+            margin: 30px;
+            padding: 30px;
+        }
+    </style>
+</head>
+<body>
+    <div id="controls">
+        <button id="playSndBtn">Play Sound</button>
+        <label for="loopChk">loop</label>
+        <input type="checkbox" id="loopChk" id="loop">
+        <button id="stopSndBtn">Stop Sound</button>
+        <label for="volumeRng">volume</label>
+        <input type="range" id="volumeRng" min="0" max="0.5" value="0.3" step="0.01">
+        <button id="stopMusicBtn">Stop Music</button>
+    </div>
+    
+    <script src="game.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function(event) {
+           const game = new Game();
+            window.game = game;
+        });
+    </script>
+</body>
+</html>
