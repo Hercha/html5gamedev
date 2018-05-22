@@ -15,7 +15,7 @@ class Game {
         this.ui = [];
         this.sprites = [];
         
-        this.audioContext = new (window.AudioContext || window.webkitAudioContext());
+        this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
         this.collectSfx = new SFX({
             context: this.audioContext,
             src: {mp3: "sfx/collect.mp3", webm: "sfx/collect.webm"},
@@ -24,13 +24,13 @@ class Game {
         });
         this.blowholeSfx = new SFX({
             context: this.audioContext,
-            src: {mp3: "sfx/blowhole.mp3", webm: "sfx/collect.webm"},
+            src: {mp3: "sfx/blowhole.mp3", webm: "sfx/blowhole.webm"},
             loop: false,
             volume: 0.3
         });
         this.dipSfx = new SFX({
             context: this.audioContext,
-            src: {mp3: "sfx/splash_dip.mp3", webm: "sfx/splas_dip.webm"},
+            src: {mp3: "sfx/splash_dip.mp3", webm: "sfx/splash_dip.webm"},
             loop: false,
             volume: 0.3
         });
@@ -59,7 +59,7 @@ class Game {
         xobj.open('GET', json + '.json', true);
         const game = this;
         xobj.onreadystatechange = function() {
-            if(xobj.readyState == 4 && xobj.status = "200") {
+            if(xobj.readyState == 4 && xobj.status == "200") {
                 callback(xobj.responseText, game);
             }  
         };
@@ -72,7 +72,7 @@ class Game {
         this.config.iceberg = {row: 105, col: 160, x: -200, y: 230};
         this.config.jump = {x: this.config.iceberg.col * (fps/11), x: this.config.iceberg.row * (fps/11)};
         
-        // Create bear anims1
+        // Create bear anims
         let anims = [];
         anims.push(new Anim("static", {frameData: this.spriteData.frames, frames: [0], loop: false, fps: fps}));
         anims.push(new Anim("forward", {frameData: this.spriteData.frames, frames: [0,"..",10], loop: false, motion: {x: 0, y: this.config.jump.y}, fps: fps, oncomplete() { game.jumpComplete(); }}));
@@ -92,7 +92,7 @@ class Game {
             anims: anims
         }
         
-        // Create Bear
+        // Create bear
         this.bear = new AnimSprite("bear", bearoptions);
         this.bear.anim = "static";
         this.bear.iceberg = null;
@@ -105,7 +105,7 @@ class Game {
             x: 160,
             y: 65,
             anchor : new Vertex(0.5, 0.5),
-            scale: 1
+            scale: 1,
         }
         let platform1 = new Sprite("platform", platformoptions);
         this.platforms.push(platform1);
@@ -171,7 +171,7 @@ class Game {
             centre: true,
             scale: 1.0,
         }
-        // Message panel - msg.panel1000x.png 1-3
+        // Message panel - msg_panel1000x.png 1-3
         this.msgPanel = new Sprite("msgPanel", msgoptions);
         
         const timeoptions = {
@@ -183,7 +183,7 @@ class Game {
             anchor: new Vertex(0.5, 0.5),
             scale: 1.0,
         }
-        // Stopwatch - stopwatch00xxx.png 1-13
+        // Stopwatch - stopwatch00xx.png 1-13
         this.stopwatch = new Sprite("stopwatch", timeoptions);
         // this.sprites.push(this.stopwatch);
         
@@ -214,7 +214,7 @@ class Game {
         this.buttons = [];
         // Buttons - xarrow000x.png 1-4
         
-        for(let i = 1; i < 4; i++) {
+        for(let i = 1; i <= 4; i++) {
             buttonoptions.index = 1;
             buttonoptions.x = (i-1) * 75 +47;
             let button = new Sprite("button", buttonoptions);
@@ -239,7 +239,7 @@ class Game {
     }
     
     jumpComplete() {
-        // Is the bear on an iceberg
+        // Is the bear on an iceberg?
         const pos = new Vertex(this.bear.x, this.bear.y);
         for(let row of this.icebergs) {
             for(let iceberg of row) {
