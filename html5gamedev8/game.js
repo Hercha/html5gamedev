@@ -67,7 +67,175 @@ class Game {
     }
     
     init() {
+        const fps = 25;
+        this.config = {};
+        this.config.iceberg = {row: 105, col: 160, x: -200, y: 230};
+        this.config.jump = {x: this.config.iceberg.col * (fps/11), x: this.config.iceberg.row * (fps/11)};
         
+        // Create bear anims1
+        let anims = [];
+        anims.push(new Anim("static", {frameData: this.spriteData.frames, frames: [0], loop: false, fps: fps}));
+        anims.push(new Anim("forward", {frameData: this.spriteData.frames, frames: [0,"..",10], loop: false, motion: {x: 0, y: this.config.jump.y}, fps: fps, oncomplete() { game.jumpComplete(); }}));
+        anims.push(new Anim("backward", {frameData: this.spriteData.frames,frames: [11,"..",21], loop: false, motion: {x: 0, y: -this.config.jump.x}, fps: fps, oncomplete() { game.jumpComplete(); }}));
+        anims.push(new Anim("left", {frameData: this.spriteData.frames, frames: [22,"..",32], loop: false, motion: {x: -this.config.jump.x, y: 0}, fps: fps, oncomplete() { game.jumpComplete(); }}));
+        anims.push(new Anim("right", {frameData: this.spriteData.frames, frames: [33,"..",43], loop: false, motion: {x: this.config.jump.x, y: 0}, fps: fps, oncomplete() { game.jumpComplete(); }}));
+        anims.push(new Anim("hooray", {frameData: this.spriteData.frames, frames: [45,"..",69], loop: false, fps: fps, oncomplete() { game.nextLevel(); }}));
+        anims.push(new Anim("fall", {frameData: this.spriteData.frames, frames: [71,"..", 127], loop: false, fps: fps, oncomplete() { game.resetBear(); }}));
+
+        const bearoptions = {
+            context: this.context,
+            image: this.spriteImage,
+            x: 150,
+            y: 100,
+            anchor: new Vertex(0.5, 0.95),
+            scale: 0.8,
+            anims: anims
+        }
+        
+        // Create Bear
+        this.bear = new AnimSprite("bear", bearoptions);
+        this.bear.anim = "static";
+        this.bear.iceberg = null;
+
+        this.platforms = [];
+        
+        let platformoptions = {
+            game: this,
+            frame: "platform.png",
+            x: 160,
+            y: 65,
+            anchor : new Vertex(0.5, 0.5),
+            scale: 1
+        }
+        let platform1 = new Sprite("platform", platformoptions);
+        this.platforms.push(platform1);
+        this.sprites.push(platform1);
+
+        platformoptions.y = 560;
+        let platform2 = new Sprite("platform", platformoptions);
+        this.platforms.push(platform2);
+        this.sprites.push(platform2);
+
+        this.icebergs = [];
+        let left = true;
+        let scale = 0.8;
+        for(let row = 0; row < 3; row++) {
+            left = !left;
+            this.icebergs.push([]);
+            for(let col = 0; col < 4; col++) {
+                let iceanims = [];
+                if(left) {
+                    // Icebergs start at 133 - 1-8-31 32-39-62 133-140-163 164-171-194
+                    iceanims.push(new Anim("berg1", {frameData:this.spriteData.frames, frames:[133,"..",140,"h6","..",163], loop:false, motion:{ x:-100, y:0 }, fps:fps, oncomplete() { game.spawn(this); }}));
+                    iceanims.push(new Anim("berg2", {frameData:this.spriteData.frames, frames:[164,"..",171,"h6","..",194], loop:false, motion:{ x:-100, y:0 }, fps:fps, oncomplete() { game.spawn(this); }}));
+                } else {
+                    iceanims.push(new Anim("berg1", {frameData:this.spriteData.frames, frames:[133,"..",140,"h6","..",163], loop:false, motion:{ x:100, y:0 }, fps:fps, oncomplete() { game.spawn(this); }}));
+                    iceanims.push(new Anim("berg2", {frameData:this.spriteData.frames, frames:[164,"..",171,"h6","..",194], loop:false, motion:{ x:100, y:0 }, fps:fps, oncomplete() { game.spawn(this); }}));
+                }
+                const options = {
+                    context: this.context,
+                    image: this.spriteImage,
+                    x: col * this.config.iceberg.col + this.config.iceberg.x,
+                    y: row * this.config.iceberg.row + this.config.iceberg.y,
+                    anchor: new Vertex(0.5, 0.95),
+                    scale: scale,
+                    anims: iceanims
+                }
+                let iceberg = new AnimSprite("iceberg", options);
+                iceberg.row = row;
+                this.icebergs[row].push(iceberg);
+                let index = Math.ceil(Math.random() * 2);
+                iceberg.anim = `berg${index}`;
+                iceberg._anim.currentTime = Math.random() * 5;
+                this.sprites.push(iceberg);
+            }
+        }
+        
+        const lifeoptions = {
+            game:this,
+            frame: "lifeicon{04}.png",
+            index: 8,
+            x: 85,
+            y: 15,
+            anchor: new Vertex(0.5, 0.5),
+            scale: 0.7,
+        }
+        // Life bar lifeicon00xx.png 1-15
+        this.lifebar = new Sprite("lifebar", lifeoptions);
+        // this.sprites.push(this.lifebar);
+        
+        const msgoptions = {
+            game: this,
+            frame: "msg_panel{04}.png",
+            index: 1,
+            centre: true,
+            scale: 1.0,
+        }
+        // Message panel - msg.panel1000x.png 1-3
+        this.msgPanel = new Sprite("msgPanel", msgoptions);
+        
+        const timeoptions = {
+            game: this,
+            frame: "stopwatch{04}.png",
+            index: 1,
+            x: 20,
+            y: 50,
+            anchor: new Vertex(0.5, 0.5),
+            scale: 1.0,
+        }
+        // Stopwatch - stopwatch00xxx.png 1-13
+        this.stopwatch = new Sprite("stopwatch", timeoptions);
+        // this.sprites.push(this.stopwatch);
+        
+        const fishoptions = {
+            game: this,
+            frame: "fish{04}.png",
+            index: 1,
+            x: 290,
+            y: 50,
+            anchor: new Vertex(0.5, 0.5),
+            scale: 0.5,
+        }
+        // Fish - fish000x.png 1-5
+        this.fish = new Sprite("fish", fishoptions);
+        // this.sprites.push(this.fish);
+        
+        // this.sprites.push(this.bear);
+        
+        const buttonoptions = {
+            game: this,
+            frame: "xarrow{04}.png",
+            index: 1,
+            x: 30,
+            y: 490,
+            anchor: new Vertex(0.5, 0.5),
+            scale: 1.0,
+        }
+        this.buttons = [];
+        // Buttons - xarrow000x.png 1-4
+        
+        for(let i = 1; i < 4; i++) {
+            buttonoptions.index = 1;
+            buttonoptions.x = (i-1) * 75 +47;
+            let button = new Sprite("button", buttonoptions);
+            this.buttons.push(button);
+            // this.sprites.push(button);
+        }
+        
+        const game = this;
+        if('ontouchstart' in window) {
+            this.canvas.addEventListener("touchstart", function(event) {
+                game.tap(event);
+            });
+        } else {
+            this.canvas.addEventListener("mousedown", function(event) {
+                game.tap(event); 
+            });
+        }
+        
+        this.state = "ready";
+        
+        this.refresh();
     }
     
     jumpComplete() {
