@@ -328,7 +328,13 @@ class Game {
     }
     
     getMousePos(evt) {
-        
+        const rect = this.canvas.getBoundingClientRect();
+        const clientX = evt.targetTouches ? evt.targetTouches[0].pageX : evt.pageX;
+        const clientY = evt.targetTouches ? evt.targetTouches[0].pageY : evt.pageY;
+        return {
+            x: clientX - rect.left,
+            y: clientY - rect.top
+        };
     }
     
     tap(evt) {
