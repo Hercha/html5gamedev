@@ -265,7 +265,7 @@ class Game {
         const now = Date.now();
         const dt = (now - this.lastRefreshTime) / 1000.0;
         
-        this.uodate(dt);
+        this.update(dt);
         this.render();
         
         this.lastRefreshTime = now;
@@ -277,7 +277,29 @@ class Game {
     };
     
     update(dt) {
+        for(let icebergs of this.icebergs) {
+            for(let iceberg of icebergs) {
+                if(iceberg._anim.motion.x > 0) {
+                    // Moving right check off screen right
+                    if(iceberg.x > this.canvas.width + this.config.iceberg.col) {
+                        iceberg.x -= this.config.iceberg.col * 4;
+                        break;
+                    }
+                } else {
+                    if(iceberg.x < -this.config.iceberg.col) {
+                        iceberg.x += this.config.iceberg.col * 4;
+                        break;
+                    }
+                }
+            }
+        }
         
+        for(let sprite of this.sprites) {
+            if(sprite == null) {
+                continue;
+            }
+            sprite.update(dt);
+        }
     }
     
     spawn() {
