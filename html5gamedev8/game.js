@@ -252,7 +252,9 @@ class Game {
     }
     
     resetBear() {
-        
+        this.bear.anim = "static";
+        this.bear.x = this.config.bear.x;
+        this.bear.y = this.config.bear.y;
     }
     
     nextLevel() {
