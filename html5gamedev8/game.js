@@ -302,8 +302,21 @@ class Game {
         }
     }
     
-    spawn() {
-        
+    spawn(anim) {
+        let sprite;
+        let found = false;
+        for(sprite of this.sprites) {
+            if(sprite._anim == anim) {
+                found = true;
+                break;
+            }
+        }
+        const index = Math.ceil(Math.random() * 2);
+        const animName = `berg${index}`;
+        if(found) {
+            sprite.anim = animName;
+            sprite.pauseAnim(1);
+        }
     }
     
     render() {
