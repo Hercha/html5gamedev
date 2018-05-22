@@ -262,8 +262,19 @@ class Game {
     }
     
     refresh() {
+        const now = Date.now();
+        const dt = (now - this.lastRefreshTime) / 1000.0;
         
-    }
+        this.uodate(dt);
+        this.render();
+        
+        this.lastRefreshTime = now;
+        
+        const game = this;
+        requestAnimationFrame(function() {
+            game.refresh();
+        });
+    };
     
     update(dt) {
         
