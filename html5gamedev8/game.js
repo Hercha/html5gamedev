@@ -320,7 +320,11 @@ class Game {
     }
     
     render() {
+        this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
         
+        for(let sprite of this.sprites) {
+            sprite.render();
+        }
     }
     
     getMousePos(evt) {
