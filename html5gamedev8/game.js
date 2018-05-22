@@ -239,7 +239,16 @@ class Game {
     }
     
     jumpComplete() {
-        
+        // Is the bear on an iceberg
+        const pos = new Vertex(this.bear.x, this.bear.y);
+        for(let row of this.icebergs) {
+            for(let iceberg of row) {
+                if(iceberg.hitTest(pos)) {
+                    this.bear.iceberg = {iceberg: iceberg, offset: new Vertex(this.bear.x-iceberg.x,  this.bear.y-iceberg.y)};
+                }
+            }
+        }
+        this.bear.anim = "static";
     }
     
     resetBear() {
