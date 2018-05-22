@@ -338,6 +338,37 @@ class Game {
     }
     
     tap(evt) {
+        if(this.state != "ready") {
+            return;
+        }
         
+        const mousePos = this.getMousePos(evt);
+        const canvasScale = this.canvas.width / this.canvas.offsetWidth;
+        const loc = {};
+        
+        loc.x = mousePos.x * canvasScale;
+        loc.y = mousePos.y * canvasScale;
+        
+        let i = 0;
+        for(let button of this.buttons) {
+            if(button.hitTest(loc)) {
+                this.bear.iceberg = null;
+                switch(i) {
+                    case 0:
+                        this.bear.anim = "left";
+                        break;
+                    case 1:
+                        this.bear.anim = "backward";
+                        break;
+                    case 2:
+                        this.bear.anim = "forward";
+                        break;
+                    case 3:
+                        this.bear.anim = "right";
+                        break;
+                }
+            }
+            i++;
+        }
     }
 }
