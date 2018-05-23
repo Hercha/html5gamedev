@@ -381,7 +381,41 @@ class Game {
     }
     
     drawDiamonds() {
+        let frame;
+        for(let i = 0; i < this.bitsData.frames.length; i++) {
+            if(this.bitsData.frames[i].fileName == "diamond.png") {
+                frame = this.bitsData.frames[i].frame;
+                break;
+            }
+        }
         
+        let scale = 0.7;
+        
+        for(let i =0; i < this.bitsData.diamonds.length; i++) {
+            let diamond = this.bitsData.diamonds[i];
+            if(diamond.found == null) {
+                this.context.drawImage(this.bitsImage, frame.x, frame.y, frame.w, frame.h diamond.x + this.position.x, diamond.y + this.position.y, frame.w * scale, frame.h * scale);
+            } else if(diamond.hidden == null) {
+                let elapsedTime = Date.now() - diamond.findTime;
+                let opacity = 1.0 - elapsedTime / 1000.0;
+                if(opacity > 0) {
+                    let frame;
+                    for(let i =0; i < this.bitsData.frames.length; i++) {
+                        if(this.bitsData.frames[i].fileName == "blank.png") {
+                            frame = this.bitsData.frames[i].frame;
+                            break;
+                        }
+                    }
+                    this.context.globalAlpha = opacity;
+                    let delta = (1.0 - opacity) * 0.3;
+                    let dscale = scale + delta;
+                    this.context.drawImage(this.bitsImage, frame.x, frame.y, frame.w, frame.h, diamond.x + this.position.x-delta/2, diamond.y + this.position.y-delta/2, frame.w * dscale, frame.h * dscale);
+                    this.context.globalAlpha = 1.0;
+                } else {
+                    diamond.hidden = true;
+                }
+            }
+        }
     }
     
     checkDiamonds() {
