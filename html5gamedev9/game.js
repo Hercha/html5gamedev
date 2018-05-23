@@ -442,21 +442,17 @@ class Game {
         }
     }
     
-    constrainBackground() {
-        // Aim of this is to centre xbloke
-        let centre = new Vertex(this.canvas.width/2, this.canvas.height/2);
-        let position = new Vertex(centre.x - this.xbloke.x, centre.y - this.xbloke.y);
-        let blend = 0.3;
-        let easePosition = new Vertex(this.position.x * (1- blend) + position.x * blend, this.position.y * (1 - blend) + position.y * blend);
-        if(easePosition.y > 0) {
-            easePosition.y = 0;
-        }
-        if((easePosition.y + this.background.height)<this.canvas.height) {
-            easePosition.y = this.canvas.height - this.background.height;
-        }
-        this.position.x - easePosition.x;
-        this.position.y - easePosition.y;
-    }
+    constrainBackground(){
+		//Aim of this is to centre xbloke
+		let centre = new Vertex(this.canvas.width/2, this.canvas.height/2);
+		let position = new Vertex(centre.x - this.xbloke.x, centre.y - this.xbloke.y);
+		let blend = 0.3;
+		let easePosition = new Vertex(this.position.x * (1 - blend) + position.x * blend, this.position.y * (1 - blend) + position.y * blend);
+		if (easePosition.y>0) easePosition.y = 0;
+		if ((easePosition.y + this.background.height)<this.canvas.height) easePosition.y = this.canvas.height - this.background.height;
+		this.position.x = easePosition.x;
+		this.position.y = easePosition.y;
+	}
     
     // Updates the actors
     update(dt) {
