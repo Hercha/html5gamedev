@@ -419,7 +419,27 @@ class Game {
     }
     
     checkDiamonds() {
-        
+        let delta = 10;
+        let rect1 = new Rect(this.xbloke.x + delta, this.xbloke.y + delta, 45, 45);
+        for(let i = 0; i < this.bitsData.diamonds.length; i++) {
+            let diamond = this.bitsData.diamonds[i];
+            let frame;
+            for(let j = 0; j < this.bitsData.frames.length; j++) {
+                if(this.bitsData.frames[j].fileName == diamond.filename) {
+                    frame = this.bitsData.frames[j].frame;
+                    break;
+                }
+            }
+            if(frame != null) {
+                let rect2 = new Rect(diamond.x, diamond.y, frame.w, frame.h);
+                if(rect1.overlaps(rect2)) {
+                    diamond.found = true;
+                    diamond.opacity = 1.0;
+                    diamond.findTime = Date.now();
+                    break;
+                }
+            }
+        }
     }
     
     constrainBackground() {
