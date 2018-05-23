@@ -272,7 +272,67 @@ class Game {
     }
     
     checkFloor() {
+        let rect1 = new Rect(this.xbloke.x, this.xbloke.y, this.xbloke.frameData.frame.w, this.xbloke.frameData.frame.h);
+        let delta = 10;
+        let floor = 120 + this.canvas.height / 2 + 230;
+        let posY = -this.position.y + this.xbloke.y;
         
+        if(this.xbloke.onground) {
+            if(posY < floor) {
+                // Check if on a platform
+                rect1.h += delta;
+                let onplatform = false;
+                for(let i = 0; i < this.bitsData.platforms.length; i++) {
+                    let platform = this.bitsData.platforms[i];
+                    let frame;
+                    for(let j = 0; j < this.bitsData.frames.length; j++) {
+                        if(this.bitsData.frames[j].fileName == platform.filename) {
+                            frame = this.bitsData.frames[j].frame;
+                            break;
+                        }
+                    }
+                    if(frame != null) {
+                        let rect2 = new Rect(platform.x + 2 * delta, platform.y, frame.w - delta * 2, frame.h);
+                        if(rect1.overlaps(rect2)) {
+                            if(rect1.top < rect2.top) {
+                                this.xbloke.y = platform.y - 37 * this.xbloke.anchor.y;
+                                onplatform = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+                if(!onplatform) {
+                    this.setAction("xbloke", "drop", this.xbloke.flipped);
+                }
+            }
+        } else {
+            for(let i = 0; i < this.bitsData.platforms.length; i++) {
+                let platform = this.bitsData.platforms[i];
+                let frame;
+                for(let j = 0; j < this.bitsdata.frames.length; j++) {
+                    if(this.bitsData.frames[j].filename == platform.filename) {
+                        frame = this.bitsData.frames[j].frame;
+                        break;
+                    }
+                }
+                if(frame != null) {
+                    let rect2 = new Rect(platform.x + 4 * delta, platform.y, frame.w - delta * 3, frame.h);
+                    if(rect1.overlaps(rect2)) {
+                        if(rect1.top < rect2.top) {
+                            this.xbloke.y = platform.y - 37 * this.xbloke.anchor.y;
+                            this.setAction("xbloke", "land");
+                            return;
+                        }
+                    }
+                }
+            }
+        }
+        
+        if(posY > floor) {
+            this.xbloke.y = floor - 120;
+            this.setAction("xbloke", "land", this.xbloke.flipped);
+        }
     }
     
     // Triggers an update and render
