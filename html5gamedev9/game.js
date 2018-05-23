@@ -163,11 +163,42 @@ class Game {
     }
     
     getMousePos(evt) {
-        
+        let clientX = evt.targetTouches ? evt.targetTouches[0].pageX : evt.pageX;
+		let clientY = evt.targetTouches ? evt.targetTouches[0].pageY : evt.pageY;
+        return new Vertex(clientX - this.canvas.offsetLeft, clientY - this.canvas.offsetTop);
     }
     
     mousedown(evt) {
+        evt.preventDefault();
+        let mousePos = this.getMousePos(evt);
+        let mouseData = {down:true, clickPosition:mousePos, swipePosition:new Vertex(mousePos.x, mousePos.y), clickTime: Date.now()};
+        let flipped = mousePos.x < this.canvas.width * 0.3;
+        let actionSet = false;
         
+        if(this.mouseData != null) {
+            let elapsedTime = mouseData.clickTime - this.mouseData.clickTime;
+            if(elapsedTime < 500) {
+                // Double click
+                if(this.xbloke.onground) {
+                    if(mousPos.y > this.canvas.height / 2) {
+                        this.setAction("xbloke", "kick", flipped);
+                    } else {
+                        this.setAction("xbloke", "jump", flipped);
+                    }
+                    actionSet = true;
+                }
+            }
+        }
+        
+        if(!actionSet && this.xbloke.onground) {
+            if(flipped) {
+                this.setAction("xbloke", "walk", flipped);
+            } else if (mousePos.x > this.canvas.width * 0.7) {
+                this.setAction("xbloke", "walk", flipped);
+            }
+        }
+        
+        this.mouseData = mouseData;
     }
     
     mousemove(evt) {
