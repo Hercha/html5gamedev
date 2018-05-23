@@ -454,12 +454,31 @@ class Game {
     
     // Update the actors
     update(dt) {
-        
+        this.xbloke.update(dt);
+        this.constrainBackground();
+        this.checkDiamonds();
     }
     
     // Renders all actors
     render() {
+        // console.log("preview render");
+        this.context.clearRect(0,0, this.canvas.width, this.canvas.height);
         
+        let scale = 0.8;
+        let left = this.position.x * scale;
+        while(left > 0) {
+            left -= this.background.width;
+        }
+        
+        do {
+            this.context.drawImage(this.background, left, this.position.y * scale);
+            left += this.background.width;
+        } while (left < this.canvas.width);
+        
+        this.drawPlatforms();
+        this.drawDiamonds();
+        
+        this.xbloke.render();
     }
     
 }
