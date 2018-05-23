@@ -202,11 +202,37 @@ class Game {
     }
     
     mousemove(evt) {
+        evt.preventDefault();
         
+        let mousePos = this.getMousePos(evt);
+        
+        if(this.mouseData != null) {
+            if(this.mouseData.down && this.xbloke.onground && (this.mouseData.swipePosition.y - mousePos.y) > 100) {
+                this.mouseData.swipePosition.y = mousePos.y;
+                this.setAction("xbloke", "jump", this.xbloke.flipped);
+            } else if(mousePos.y > this.mouseData.swipePosition.y) {
+                this.mouseData.swipePosition.y = mousePos.y;
+            }
+        }
     }
     
     mouseup(evt) {
+        evt.preventDefault();
         
+        this.mouseData.down = false;
+        
+        if(this.xbloke.onground) {
+            let anim;
+            if(this.xbloke.animName == "run") {
+                anim = new Anim("slowdown", {frameData:this.spriteData.frames, frames:[9, "..2",25], motion: {x:150, y:0}});
+                this.xbloke.anim = anim;
+            } else if(this.xbloke.animName == "walk") {
+                anim = new Anim("slowdown", {frameData:this.spriteData.frames, frames:[9, "..",25], motion: {x:50, y:0}});
+                this.xbloke.anim = anim;
+            } else {
+                this.setAction("xbloke", "ambient", this.xbloke.flipped);
+            }
+        }
     }
     
     animNamed(name) {
