@@ -88,6 +88,77 @@ class Game {
     
     // Called after the spritesheet is loaded to initialize the actors and their initial action
     init() {
+        this.position = {x: 0, y: -120, width: this.canvas.width};
+        
+        let options = {
+            context: this.context,
+            image: this.spriteImage,
+            x: this.canvas.width / 2,
+            y: this.canvas.height / 2 +230,
+            canvasOffset: this.position
+        };
+        this.xbloke = new AnimSprite('xbloke', options);
+        
+        const game = this;
+        this.anims = [];
+        this.anims.push(new Anim("walk", {frameData:this.spriteData.frames, frames:[9,"..",25], motion:{x:150, y:0}}));
+        this.anims.push(new Anim("run", {frameData:this.spriteData.frames, frames:[9,"..2",25], motion:{x:250, y:0}}));
+        this.anims.push(new Anim("jump", {frameData:this.spriteData.frames, frames:[41,"..",58], motion:{x:100, easing:{type:"outQuad", change:-150, duration:18/30}}, loop:false, oncomplete:function(){
+            game.setAction("xbloke", "drop");
+        }}));
+        this.anims.push(new Anim("drop", {frameData:this.spriteData.frames, frames:[59,"..",73], motion:{x:150, easing:{type:"intQuad", change:150, duration:18/30}}, loop:false, oncomplete:function(){
+            game.checkFloor();
+        }}));
+        this.anims.push(new Anim("land", {frameData:this.spriteData.frames, frames:[74,"..",87], loop:false, oncomplete:function(){
+            if(game.mouseData != null && game.mouseData.down) {
+                game.setAction("xbloke", "walk");
+            } else {
+                game.setAction("xbloke", "landrest");
+            }
+        }}));
+        this.anims.push(new Anim("landrest", {frameData:this.spriteData.frames, frames:[88,"..",100], loop:false, oncomplete:function(){
+            game.setAction("xbloke", "ambient");
+        }}));
+        this.anims.push(new Anim("ambient", {frameData:this.spriteData.frames, frames:[101,"..",575]}));
+        this.anims.push(new Anim("kick", {frameData:this.spriteData.frames, frames:[580,"..",605], motion:{x:50, easing:{type:"projektile", change:-30, duration:25/30}}, loop:false, oncomplete:function(){
+            game.checkFloor();
+            game.setAction("xbloke", "ambient");
+        }}));
+        this.anims.push(new Anim("lookback", {frameData:this.spriteData.frames, frames:[606,"..",675], loop:false, oncomplete:function(){
+            game.setAction("xbloke", "ambient");
+        }}));
+        this.anims.push(new Anim("lookforward", {frameData:this.spriteData.frames, frames:[680,"..",759], loop:false, oncomplete:function(){
+            game.setAction("xbloke", "ambient");
+        }}));
+        this.anims.push(new Anim("dance", {frameData:this.spriteData.frames, frames:[762,"..",880]}));
+        
+        this.xbloke.anim = this.setAction("xbloke", "ambient");
+        
+        this.lastTime = Date.now();
+        
+        this.refresh();
+        
+        if('ontouchstart' in window) {
+            this.canvas.addEventListener('touchstart', down);
+            this.canvas.addEventListener('touchmove', move);
+            document.addEventListener('touchend', up);
+        } else {
+            this.canvas.addEventListener('mousedown', down);
+            this.canvas.addEventListener('mousemove', move);
+            document.addEventListener('mouseup', up);
+        }
+        
+        function down(evt) {
+            game.mousedown(evt);
+        }
+        
+        function move(evt) {
+            game.mousemove(evt);
+        }
+        
+        function up(evt) {
+            game.mouseup(evt);
+        }
         
     }
     
