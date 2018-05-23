@@ -14,6 +14,7 @@ class Game {
         this.buttons = [];
         this.ui = [];
         this.sprites = [];
+        this.pauseTime = 0.2;
         
         this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
         this.collectSfx = new SFX({
@@ -69,14 +70,15 @@ class Game {
     init() {
         const fps = 25;
         this.config = {};
-        this.config.iceberg = {row: 105, col: 160, x: -200, y: 230};
-        this.config.jump = {x: this.config.iceberg.col * (fps/11), x: this.config.iceberg.row * (fps/11)};
+        this.config.iceberg = {row: 105, col: 160, x: -200, y: 200};
+        this.config.bear = {x: 170, y: 100};
+        this.config.jump = {x: this.config.iceberg.col * (fps/11), y: this.config.iceberg.row * (fps/11)};
         
         // Create bear anims
         let anims = [];
         anims.push(new Anim("static", {frameData: this.spriteData.frames, frames: [0], loop: false, fps: fps}));
         anims.push(new Anim("forward", {frameData: this.spriteData.frames, frames: [0,"..",10], loop: false, motion: {x: 0, y: this.config.jump.y}, fps: fps, oncomplete() { game.jumpComplete(); }}));
-        anims.push(new Anim("backward", {frameData: this.spriteData.frames,frames: [11,"..",21], loop: false, motion: {x: 0, y: -this.config.jump.x}, fps: fps, oncomplete() { game.jumpComplete(); }}));
+        anims.push(new Anim("backward", {frameData: this.spriteData.frames,frames: [11,"..",21], loop: false, motion: {x: 0, y: -this.config.jump.y}, fps: fps, oncomplete() { game.jumpComplete(); }}));
         anims.push(new Anim("left", {frameData: this.spriteData.frames, frames: [22,"..",32], loop: false, motion: {x: -this.config.jump.x, y: 0}, fps: fps, oncomplete() { game.jumpComplete(); }}));
         anims.push(new Anim("right", {frameData: this.spriteData.frames, frames: [33,"..",43], loop: false, motion: {x: this.config.jump.x, y: 0}, fps: fps, oncomplete() { game.jumpComplete(); }}));
         anims.push(new Anim("hooray", {frameData: this.spriteData.frames, frames: [45,"..",69], loop: false, fps: fps, oncomplete() { game.nextLevel(); }}));
@@ -85,9 +87,9 @@ class Game {
         const bearoptions = {
             context: this.context,
             image: this.spriteImage,
-            x: 150,
-            y: 100,
-            anchor: new Vertex(0.5, 0.95),
+            x: this.config.bear.x,
+            y: this.config.bear.y,
+            anchor: new Vertex(0.35, 0.6),
             scale: 0.8,
             anims: anims
         }
@@ -103,7 +105,7 @@ class Game {
             game: this,
             frame: "platform.png",
             x: 160,
-            y: 65,
+            y: 75,
             anchor : new Vertex(0.5, 0.5),
             scale: 1,
         }
@@ -119,6 +121,7 @@ class Game {
         this.icebergs = [];
         let left = true;
         let scale = 0.8;
+        const speed = 80;
         for(let row = 0; row < 3; row++) {
             left = !left;
             this.icebergs.push([]);
@@ -126,18 +129,18 @@ class Game {
                 let iceanims = [];
                 if(left) {
                     // Icebergs start at 133 - 1-8-31 32-39-62 133-140-163 164-171-194
-                    iceanims.push(new Anim("berg1", {frameData:this.spriteData.frames, frames:[133,"..",140,"h6","..",163], loop:false, motion:{ x:-100, y:0 }, fps:fps, oncomplete() { game.spawn(this); }}));
-                    iceanims.push(new Anim("berg2", {frameData:this.spriteData.frames, frames:[164,"..",171,"h6","..",194], loop:false, motion:{ x:-100, y:0 }, fps:fps, oncomplete() { game.spawn(this); }}));
+                    iceanims.push(new Anim("berg1", {frameData:this.spriteData.frames, frames:[133,"..",140,"h8","..",163], loop:false, motion:{ x:-speed, y:0 }, fps:fps, oncomplete() { game.spawn(this); }}));
+                    iceanims.push(new Anim("berg2", {frameData:this.spriteData.frames, frames:[164,"..",171,"h8","..",194], loop:false, motion:{ x:-speed, y:0 }, fps:fps, oncomplete() { game.spawn(this); }}));
                 } else {
-                    iceanims.push(new Anim("berg1", {frameData:this.spriteData.frames, frames:[133,"..",140,"h6","..",163], loop:false, motion:{ x:100, y:0 }, fps:fps, oncomplete() { game.spawn(this); }}));
-                    iceanims.push(new Anim("berg2", {frameData:this.spriteData.frames, frames:[164,"..",171,"h6","..",194], loop:false, motion:{ x:100, y:0 }, fps:fps, oncomplete() { game.spawn(this); }}));
+                    iceanims.push(new Anim("berg1", {frameData:this.spriteData.frames, frames:[133,"..",140,"h8","..",163], loop:false, motion:{ x:speed, y:0 }, fps:fps, oncomplete() { game.spawn(this); }}));
+                    iceanims.push(new Anim("berg2", {frameData:this.spriteData.frames, frames:[164,"..",171,"h8","..",194], loop:false, motion:{ x:speed, y:0 }, fps:fps, oncomplete() { game.spawn(this); }}));
                 }
                 const options = {
                     context: this.context,
                     image: this.spriteImage,
                     x: col * this.config.iceberg.col + this.config.iceberg.x,
                     y: row * this.config.iceberg.row + this.config.iceberg.y,
-                    anchor: new Vertex(0.5, 0.95),
+                    anchor: new Vertex(0.5, 0.5),
                     scale: scale,
                     anims: iceanims
                 }
@@ -146,7 +149,7 @@ class Game {
                 this.icebergs[row].push(iceberg);
                 let index = Math.ceil(Math.random() * 2);
                 iceberg.anim = `berg${index}`;
-                iceberg._anim.currentTime = Math.random() * 5;
+                iceberg._anim.currentTime = Math.random() * 6;
                 this.sprites.push(iceberg);
             }
         }
@@ -162,7 +165,7 @@ class Game {
         }
         // Life bar lifeicon00xx.png 1-15
         this.lifebar = new Sprite("lifebar", lifeoptions);
-        // this.sprites.push(this.lifebar);
+        this.sprites.push(this.lifebar);
         
         const msgoptions = {
             game: this,
@@ -171,7 +174,7 @@ class Game {
             centre: true,
             scale: 1.0,
         }
-        // Message panel - msg_panel1000x.png 1-3
+        // Message panel - msg_panel000x.png 1-3
         this.msgPanel = new Sprite("msgPanel", msgoptions);
         
         const timeoptions = {
@@ -185,7 +188,7 @@ class Game {
         }
         // Stopwatch - stopwatch00xx.png 1-13
         this.stopwatch = new Sprite("stopwatch", timeoptions);
-        // this.sprites.push(this.stopwatch);
+        this.sprites.push(this.stopwatch);
         
         const fishoptions = {
             game: this,
@@ -198,9 +201,9 @@ class Game {
         }
         // Fish - fish000x.png 1-5
         this.fish = new Sprite("fish", fishoptions);
-        // this.sprites.push(this.fish);
+        this.sprites.push(this.fish);
         
-        // this.sprites.push(this.bear);
+        this.sprites.push(this.bear);
         
         const buttonoptions = {
             game: this,
@@ -215,11 +218,15 @@ class Game {
         // Buttons - xarrow000x.png 1-4
         
         for(let i = 1; i <= 4; i++) {
-            buttonoptions.index = 1;
+            buttonoptions.index = i;
             buttonoptions.x = (i-1) * 75 +47;
             let button = new Sprite("button", buttonoptions);
             this.buttons.push(button);
-            // this.sprites.push(button);
+            this.sprites.push(button);
+        }
+        
+        for(let sprite of this.sprites) {
+            sprite.debug = true;
         }
         
         const game = this;
@@ -239,19 +246,65 @@ class Game {
     }
     
     jumpComplete() {
+        // Have we got across
+        if(this.bear.y > 500) {
+            this.bear.anim = "hooray";
+            return;
+        } else if(this.bear.y <= this.config.bear.y) {
+            this.bear.anim = "static";
+            return;
+        }
+        
         // Is the bear on an iceberg?
         const pos = new Vertex(this.bear.x, this.bear.y);
+        let found = false;
         for(let row of this.icebergs) {
             for(let iceberg of row) {
                 if(iceberg.hitTest(pos)) {
-                    this.bear.iceberg = {iceberg: iceberg, offset: new Vertex(this.bear.x-iceberg.x,  this.bear.y-iceberg.y)};
+                    // Make sure bear is in centre part of the iceberg
+                    const bb = iceberg.boundingBox;
+                    const left = bb.x + bb.w / 8;
+                    const right = bb.x + bb.w * (7/8);
+                    const anim = iceberg.anim;
+                    if(this.bear.x > left && this.bear.x < right) {
+                        // Now check if the anim shows a solid berg
+                        if(!anim.paused && (anim.frames.length - anim.index) > 20) {
+                            this.bear.iceberg = {sprite: iceberg, offset: new Vertex(this.bear.x-iceberg.x,  this.bear.y-iceberg.y)};
+                        }
+                    }
+                    console.log(`Found iceberg x:${left}<${this.bear.x}<${right} paused:${anim.paused} frame:${anim.index} of ${anim.frames.length} iceberg: ${this.bear.iceberg}`);
+                    found = true;
+                    break;
                 }
             }
+            if(found) {
+                break;
+            }
         }
-        this.bear.anim = "static";
+        if(this.bear.iceberg == null) {
+            this.loseLife = true;
+        } else {
+            this.bear.anim = "static";   
+        }
+    }
+    
+    loseLife(fall=false) {
+        this.bear.iceberg = null;
+        if(fall) {
+            this.sprites.splice(this.sprites.indexOf(this.bear), 1);
+            const row = Math.floor((this.bear.y - this.config.iceberg.y)/this.config.iceberg.row);
+            const index = this.sprites.indexOf(this.icebergs[row][0]);
+            this.sprites.splice(index, 0, this.bear);
+            this.bear.anim = "fall";
+        } else {
+            this.resetBear();
+        }
     }
     
     resetBear() {
+        this.sprites.splice(this.sprites.indexOf(this.bear), 1);
+        this.sprites.splice(this.sprites.length - 4, 0, this.bear);
+        this.bear.iceberg = null;
         this.bear.anim = "static";
         this.bear.x = this.config.bear.x;
         this.bear.y = this.config.bear.y;
@@ -294,6 +347,19 @@ class Game {
             }
         }
         
+        if(this.bear.iceberg != null) {
+            this.bear.x = this.bear.iceberg.sprite.x + this.bear.iceberg.offset.x;
+            let offscreen = this.bear.x > 320 || this.bear.x < 0;
+            if(offscreen) {
+                this.loseLife();
+            } else {
+                const anim = this.bear.iceberg.sprite.anim;
+                if((anim.frames.length - anim.index) < 20) {
+                    this.loseLife(true);
+                }
+            }
+        }
+        
         for(let sprite of this.sprites) {
             if(sprite == null) {
                 continue;
@@ -315,12 +381,17 @@ class Game {
         const animName = `berg${index}`;
         if(found) {
             sprite.anim = animName;
-            sprite.pauseAnim(1);
+            sprite.pauseAnim(this.pauseTime);
+        }
+        if(this.bear.iceberg != null && sprite == this.bear.iceberg.sprite) {
+            this.loseLife(true);
         }
     }
     
     render() {
         this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        this.context.fillStyle = "#fff";
+        this.context.fillRect(0,0,this.canvas.width, 20);
         
         for(let sprite of this.sprites) {
             sprite.render();
@@ -339,6 +410,9 @@ class Game {
     
     tap(evt) {
         if(this.state != "ready") {
+            return;
+        }
+        if(this.bear.anim.name != "static") {
             return;
         }
         
