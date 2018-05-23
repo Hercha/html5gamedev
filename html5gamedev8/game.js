@@ -16,6 +16,33 @@ class Game {
         this.sprites = [];
         this.pauseTime = 0.2;
         
+        const sfxExt = (SFX.supportsVideoType("webm")) ? "webm" : "mp3";
+        const game = this;
+        const options = {
+            assets: [
+                `sfx/blowhole.${sfxExt}`,
+                `sfx/collect.${sfxExt}`,
+                `sfx/splash_dip.${sfxExt}`,
+                `sfx/splash_dive.${sfxExt}`,
+                "beargame.json",
+                "beargame.png"
+            ],
+            oncomplete: function() {
+                const progress = document.getElementById('progress');
+                progress.style.display = "none";
+                game.load();
+            },
+            onprogress: function(value) {
+                const bar = document.getElementById('progress-bar');
+                bar.style.width = `${value*100}%`;
+            }
+        }
+        
+        const preloader = new Preloader(options);
+        
+    }
+    
+    load() {
         this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
         this.collectSfx = new SFX({
             context: this.audioContext,
@@ -41,9 +68,9 @@ class Game {
             loop: false,
             volume: 0.3
         });
-        
+
         const game = this;
-        
+
         this.loadJSON("beargame", function(data, game) {
             game.spriteData = JSON.parse(data);
             game.spriteImage = new Image();
@@ -51,7 +78,7 @@ class Game {
             game.spriteImage.onload = function(){
                 game.init();
             }
-        });
+        });   
     }
     
     loadJSON(json, callback) {
@@ -71,6 +98,7 @@ class Game {
         const fps = 25;
         this.config = {};
         this.config.iceberg = {row: 105, col: 160, x: -200, y: 200};
+        this.config.height = 413;
         this.config.bear = {x: 170, y: 100};
         this.config.jump = {x: this.config.iceberg.col * (fps/11), y: this.config.iceberg.row * (fps/11)};
         
@@ -136,6 +164,7 @@ class Game {
                     iceanims.push(new Anim("berg2", {frameData:this.spriteData.frames, frames:[164,"..",171,"h8","..",194], loop:false, motion:{ x:speed, y:0 }, fps:fps, oncomplete() { game.spawn(this); }}));
                 }
                 const options = {
+                    name: "iceberg",
                     context: this.context,
                     image: this.spriteImage,
                     x: col * this.config.iceberg.col + this.config.iceberg.x,
@@ -168,6 +197,7 @@ class Game {
         this.sprites.push(this.lifebar);
         
         const msgoptions = {
+            name: "ui",
             game: this,
             frame: "msg_panel{04}.png",
             index: 1,
@@ -219,7 +249,7 @@ class Game {
         
         for(let i = 1; i <= 4; i++) {
             buttonoptions.index = i;
-            buttonoptions.x = (i-1) * 75 +47;
+            buttonoptions.x = (i-1) * 75 + 47;
             let button = new Sprite("button", buttonoptions);
             this.buttons.push(button);
             this.sprites.push(button);
@@ -282,7 +312,7 @@ class Game {
             }
         }
         if(this.bear.iceberg == null) {
-            this.loseLife = true;
+            this.loseLife(true);
         } else {
             this.bear.anim = "static";   
         }
@@ -311,7 +341,22 @@ class Game {
     }
     
     nextLevel() {
-        
+        this.bear.anim = "static";
+        this.state = "next level";
+        this.level++;
+        for(let row of this.icebergs) {
+            for(let iceberg of row) {
+                iceberg.targetY = iceberg.y;
+                iceberg.reset = false;
+            }
+        }
+        this.bear.targetY = this.config.bear.y;
+        this.bear.reset = true;
+        this.platforms[0].targetY = this.platforms[1].y;
+        this.platforms[1].targetY = this.platforms[0].y;
+        for(let platform of this.platforms) {
+            platform.reset = (platform.y > 400);
+        }
     }
     
     refresh() {
@@ -330,8 +375,36 @@ class Game {
     };
     
     update(dt) {
-        for(let icebergs of this.icebergs) {
-            for(let iceberg of icebergs) {
+        
+        if(this.state == "next level") {
+            // Spawning a new level
+            const ui = ["lifebar", "button", "bottle", "stopwatch"];
+            let count = {reset: 0, total: 0};
+            let offsetY = -10;
+            for(let sprite of this.sprites) {
+                if(ui-includes(sprite.name)) {
+                    continue;
+                }
+                count.total++;
+                let check = (sprite.y >= sprite.targetY && sprite.reset);
+                sprite.y += offsetY;
+                let bb = sprite.boundingBox;
+                if((bb.y + bb.h) < 0) {
+                    sprite.y += (this.canvas.height + bb.h);
+                    sprite.reset = true;
+                }
+                if(sprite.y < sprite.targetY && check) {
+                    sprite.y = sprite.targetY;
+                    count.reset++;
+                }
+            }
+            if(count.reset == count.total) {
+                this.state = "ready";
+            }
+        }
+        
+        for(let row of this.icebergs) {
+            for(let iceberg of row) {
                 if(iceberg._anim.motion.x > 0) {
                     // Moving right check off screen right
                     if(iceberg.x > this.canvas.width + this.config.iceberg.col) {
