@@ -15,15 +15,29 @@ class Game {
         this.ui = [];
         this.sprites = [];
         this.pauseTime = 0.2;
+        this.level = 1;
+        this.fishcount = 0;
+        this.debug = false;
+        this.font = '30px Verdana';
+        this.txtoptions = {
+            alignment: "center",
+            font: 'Verdana',
+            fontSize: 12,
+            lineHeight: 15,
+            color: "#fff"
+        }
         
         const sfxExt = (SFX.supportsVideoType("webm")) ? "webm" : "mp3";
         const game = this;
         const options = {
             assets: [
-                `sfx/blowhole.${sfxExt}`,
+                `sfx/click.${sfxExt}`,
                 `sfx/collect.${sfxExt}`,
-                `sfx/splash_dip.${sfxExt}`,
-                `sfx/splash_dive.${sfxExt}`,
+                `sfx/gliss.${sfxExt}`,
+                `sfx/jump.${sfxExt}`,
+                `sfx/splash.${sfxExt}`,
+                `sfx/sploosh.${sfxExt}`,
+                `sfx/swish.${sfxExt}`,
                 "beargame.json",
                 "beargame.png"
             ],
@@ -39,7 +53,6 @@ class Game {
         }
         
         const preloader = new Preloader(options);
-        
     }
     
     load() {
@@ -50,21 +63,39 @@ class Game {
             loop: false,
             volume: 0.3
         });
-        this.blowholeSfx = new SFX({
+        this.completeSfx = new SFX({
             context: this.audioContext,
-            src: {mp3: "sfx/blowhole.mp3", webm: "sfx/blowhole.webm"},
+            src: {mp3: "sfx/gliss.mp3", webm: "sfx/gliss.webm"},
             loop: false,
             volume: 0.3
         });
-        this.dipSfx = new SFX({
+        this.splashSfx = new SFX({
             context: this.audioContext,
-            src: {mp3: "sfx/splash_dip.mp3", webm: "sfx/splash_dip.webm"},
+            src: {mp3: "sfx/splash.mp3", webm: "sfx/splash.webm"},
             loop: false,
             volume: 0.3
         });
-        this.diveSfx = new SFX({
+        this.splooshSfx = new SFX({
             context: this.audioContext,
-            src: {mp3: "sfx/splash_dive.mp3", webm: "sfx/splash_dive.webm"},
+            src: {mp3: "sfx/sploosh.mp3", webm: "sfx/sploosh.webm"},
+            loop: false,
+            volume: 0.3
+        });
+        this.swishSfx = new SFX({
+            context: this.audioContext,
+            src: {mp3: "sfx/swish.mp3", webm: "sfx/swish.webm"},
+            loop: false,
+            volume: 0.3
+        });
+        this.clickSfx = new SFX({
+            context: this.audioContext,
+            src: {mp3: "sfx/click.mp3", webm: "sfx/click.webm"},
+            loop: false,
+            volume: 0.3
+        });
+        this.jumpSfx = new SFX({
+            context: this.audioContext,
+            src: {mp3: "sfx/jump.mp3", webm: "sfx/jump.webm"},
             loop: false,
             volume: 0.3
         });
@@ -99,8 +130,14 @@ class Game {
         this.config = {};
         this.config.iceberg = {row: 105, col: 160, x: -200, y: 200};
         this.config.height = 413;
-        this.config.bear = {x: 170, y: 100};
+        this.config.bear = {x: 170, y: 100};// Starting position of bear
         this.config.jump = {x: this.config.iceberg.col * (fps/11), y: this.config.iceberg.row * (fps/11)};
+        this.config.speed = 80; // Starting speed of icebergs, pixel travel per second
+        this.config.pauseTime = this.pauseTime; // How long wait after iceberg disappears before it reppears
+        this.config.duration = 120000; // Game duration in milliseconds
+        this.config.lives = 8;
+        this.config.levels = 9;
+        this.lives = this.config.lives;
         
         // Create bear anims
         let anims = [];
@@ -114,6 +151,7 @@ class Game {
 
         const bearoptions = {
             context: this.context,
+            debug: this.debug,
             image: this.spriteImage,
             x: this.config.bear.x,
             y: this.config.bear.y,
@@ -165,6 +203,7 @@ class Game {
                 }
                 const options = {
                     name: "iceberg",
+                    debug: this.debug,
                     context: this.context,
                     image: this.spriteImage,
                     x: col * this.config.iceberg.col + this.config.iceberg.x,
@@ -186,8 +225,8 @@ class Game {
         const lifeoptions = {
             game:this,
             frame: "lifeicon{04}.png",
-            index: 8,
-            x: 85,
+            index: this.config.lives,
+            x: 55,
             y: 15,
             anchor: new Vertex(0.5, 0.5),
             scale: 0.7,
@@ -197,11 +236,10 @@ class Game {
         this.sprites.push(this.lifebar);
         
         const msgoptions = {
-            name: "ui",
             game: this,
             frame: "msg_panel{04}.png",
-            index: 1,
-            centre: true,
+            index: 3,
+            center: true,
             scale: 1.0,
         }
         // Message panel - msg_panel000x.png 1-3
@@ -220,17 +258,17 @@ class Game {
         this.stopwatch = new Sprite("stopwatch", timeoptions);
         this.sprites.push(this.stopwatch);
         
-        const fishoptions = {
+        this.fishoptions = {
             game: this,
             frame: "fish{04}.png",
             index: 1,
-            x: 290,
-            y: 50,
-            anchor: new Vertex(0.5, 0.5),
-            scale: 0.5,
+            x: 280,
+            y: 60,
+            anchor: new Vertex(0.5, 0.9),
+            scale: 0.7,
         }
         // Fish - fish000x.png 1-5
-        this.fish = new Sprite("fish", fishoptions);
+        this.fish = new Sprite("fish", this.fishoptions);
         this.sprites.push(this.fish);
         
         this.sprites.push(this.bear);
@@ -259,6 +297,8 @@ class Game {
             sprite.debug = true;
         }
         
+        this.fishes = [];
+        
         const game = this;
         if('ontouchstart' in window) {
             this.canvas.addEventListener("touchstart", function(event) {
@@ -270,9 +310,36 @@ class Game {
             });
         }
         
-        this.state = "ready";
+        this.state = "initialised";
+        // this.state = "gameover";
         
         this.refresh();
+    }
+    
+    startGame() {
+        this.startTime = Date.now();
+        this.state = "ready";
+    }
+    
+    restart() {
+        this.level = 1;
+        this.lives = this.config.lives;
+        this.lifebar.index = this.config.lives;
+        this.fishcount = 0;
+        this.fishes = [];
+        this.pauseTime = this.config.pauseTime;
+        for(let row of this.icebergs) {
+            for(let iceberg of row) {
+                for(let anim of iceberg.anims) {
+                    anim.motion.x = (anim.motion.x > 0) ? this.config.speed : -this.config.speed;
+                }
+            }
+        }
+        this.startTime = Date.now();
+        this.bear.anim = "static";
+        this.bear.x = this.config.bear.x;
+        this.bear.y = this.config.bear.y;
+        this.state = "ready";
     }
     
     jumpComplete() {
@@ -300,6 +367,17 @@ class Game {
                         // Now check if the anim shows a solid berg
                         if(!anim.paused && (anim.frames.length - anim.index) > 20) {
                             this.bear.iceberg = {sprite: iceberg, offset: new Vertex(this.bear.x-iceberg.x,  this.bear.y-iceberg.y)};
+                            let i = 0;
+                            for(let fish of this.fishes) {
+                                if(fish.iceberg == iceberg) {
+                                    this.fishes.splice(i, 1);
+                                    this.fishcount++;
+                                    this.lives++;
+                                    this.lifebar.index = Math.min(this.lives, 15);
+                                    this.collectSfx.play();
+                                }
+                                i++;
+                            }
                         }
                     }
                     console.log(`Found iceberg x:${left}<${this.bear.x}<${right} paused:${anim.paused} frame:${anim.index} of ${anim.frames.length} iceberg: ${this.bear.iceberg}`);
@@ -326,8 +404,15 @@ class Game {
             const index = this.sprites.indexOf(this.icebergs[row][0]);
             this.sprites.splice(index, 0, this.bear);
             this.bear.anim = "fall";
+            this.splashSfx.play();
         } else {
             this.resetBear();
+        }
+        if(this.lives == 1) {
+            this.state = "gameover";
+        } else {
+            this.lives--;
+            this.lifebar.index = this.lives;
         }
     }
     
@@ -342,6 +427,11 @@ class Game {
     
     nextLevel() {
         this.bear.anim = "static";
+        if(this.level == this.config.levels) {
+            this.state = "complete";
+            this.completeSfx.play();
+            return;
+        }
         this.state = "next level";
         this.level++;
         for(let row of this.icebergs) {
@@ -357,6 +447,17 @@ class Game {
         for(let platform of this.platforms) {
             platform.reset = (platform.y > 400);
         }
+        // Iceberg is hidden longer
+        this.pauseTime += 0.2;
+        // And moves faster
+        for(let row of this.icebergs) {
+            for(let iceberg of row) {
+                for(let anim of iceberg.anims) {
+                    anim.motion.x += 10;
+                }
+            }
+        }
+        this.swishSfx.play();
     }
     
     refresh() {
@@ -378,11 +479,11 @@ class Game {
         
         if(this.state == "next level") {
             // Spawning a new level
-            const ui = ["lifebar", "button", "bottle", "stopwatch"];
+            const ui = ["lifebar", "button", "fish", "stopwatch"];
             let count = {reset: 0, total: 0};
             let offsetY = -10;
             for(let sprite of this.sprites) {
-                if(ui-includes(sprite.name)) {
+                if(ui.includes(sprite.name)) {
                     continue;
                 }
                 count.total++;
@@ -402,6 +503,29 @@ class Game {
                 this.state = "ready";
             }
         }
+        
+        const elapsedTime = (this.startTime != undefined) ? Date.now() - this.startTime : 0;
+        
+        if(elapsedTime > this.config.duration) {
+            this.state = "gameover";
+        }
+        
+        if(this.state == "initialised" || this.state == "complete" || this.state == "instructions2") {
+            this.msgPanel.index = 3;
+            dt = 0;
+        } else if (this.state == "gameover") {
+            this.msgPanel.index = 1;
+            dt = 0;
+        }
+        
+        let index = Math.ceil((elapsedTime / this.config.duration) * 12);
+        if(index < 1) {
+            index = 1;
+        }
+        if(index > 13) {
+            index = 13;
+        }
+        this.stopwatch.index = index;
         
         for(let row of this.icebergs) {
             for(let iceberg of row) {
@@ -439,6 +563,12 @@ class Game {
             }
             sprite.update(dt);
         }
+        
+        for(let fish of this.fishes) {
+            fish.x = fish.iceberg.x;
+            fish.y = fish.iceberg.y;
+            fish.update(dt);
+        }
     }
     
     spawn(anim) {
@@ -453,8 +583,26 @@ class Game {
         const index = Math.ceil(Math.random() * 2);
         const animName = `berg${index}`;
         if(found) {
+            this.splooshSfx.play();
             sprite.anim = animName;
             sprite.pauseAnim(this.pauseTime);
+            let i = 0;
+            // Remove existing fish on this iceberg of one exists
+            for(let fish of this.fishes) {
+                if(fish.iceberg == sprite) {
+                    this.fishes.splice(i, 1);
+                    break;
+                }
+                i++;
+            }
+            // Add a new one based on random value
+            if(Math.random() > 0.7) {
+                this.fishoptions.index = Math.ceil(Math.random() * 5);
+                const fish = new Sprite("fish", this.fishoptions);
+                fish.iceberg = sprite;
+                fish.y = sprite.y;
+                this.fishes.push(fish);
+            }
         }
         if(this.bear.iceberg != null && sprite == this.bear.iceberg.sprite) {
             this.loseLife(true);
@@ -464,11 +612,78 @@ class Game {
     render() {
         this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
         this.context.fillStyle = "#fff";
-        this.context.fillRect(0,0,this.canvas.width, 20);
+        if(this.state != "next level") {
+            this.context.fillRect(0,0,this.canvas.width, 20);
+        }
         
         for(let sprite of this.sprites) {
             sprite.render();
         }
+        
+        for(let fish of this.fishes) {
+            const anim = fish.iceberg.anim;
+            if(anim.index > 5 && anim.index < (anim.frames.length - 20)) {
+                fish.render();
+            }
+        }
+        
+        if(this.state == "initialised") {
+            // Wait for user to start the game
+            this.msgPanel.update();
+            this.msgPanel.render();
+            const bb = this.msgPanel.boundingBox;
+            const padding = new Vertex(10, 100);
+            bb.x += padding.x;
+            bb.y += padding.y;
+            bb.w -= padding.x * 2;
+            this.txtoptions.fontSize = 15;
+            this.txtoptions.lineHeight = 17;
+            const blockText = new TextBlock(this.context, "Use the arrow buttons to control the polar bear. The aim is to cross the iceflow by jumping from iceberg to iceberg.", bb, this.txtoptions);
+        } else if (this.state == "instructions2") {
+            this.msgPanel.update();
+            this.msgPanel.render();
+            const bb = this.msgPanel.boundingBox;
+            const padding = new Vertex(10, 100);
+            bb.x += padding.x;
+            bb.y += padding.y;
+            bb.w -= padding.x * 2;
+            this.txtoptions.fontSize = 15;
+            this.txtoptions.lineHeight = 17;
+            const blockText = new TextBlock(this.context, "Fall in the water or disappear off the sides and you lose life. Collect fish to gain a life\n Click to start.", bb, this.txtoptions);
+        } else if(this.state == "gameover") {
+            this.msgPanel.update();
+            this.msgPanel.render();
+            const bb = this.msgPanel.boundingBox;
+            const padding = new Vertex(20, 105);
+            bb.x += padding.x;
+            bb.y += padding.y;
+            bb.w -= padding.x * 2;
+            this.txtoptions.fontSize = 20;
+            this.txtoptions.lineHeight = 15;
+            const reason = (this.lifebar.index == 1) ? "Out of lives." : "Out of time.";
+            const blockText = new TextBlock(this.context, `${reason}\n\nClick to play again.`, bb, this.txtoptions);
+        } else if(this.state == "complete") {
+            this.msgPanel.update();
+            this.msgPanel.render();
+            const bb = this.msgPanel.boundingBox;
+            const padding = new Vertex(20, 105);
+            bb.x += padding.x;
+            bb.y += padding.y;
+            bb.w -= padding.x * 2;
+            this.txtoptions.fontSize = 20;
+            this.txtoptions.lineHeight = 15;
+            const blockText = new TextBlock(this.context, "Great play.\n\nClick to play again.", bb, this.txtoptions);      
+        }
+        
+        this.context.font = this.font;
+        this.context.fillStyle = "#999";
+        let str = String(this.level);
+        let txt = this.context.measureText(str);
+        this.context.fillText(str, 310 - txt.width / 2, 25);
+        
+        str = String(this.fishcount);
+        txt = this.context.measureText(str);
+        this.context.fillText(str, 310 - txt.width / 2, 60);
     }
     
     getMousePos(evt) {
@@ -482,6 +697,16 @@ class Game {
     }
     
     tap(evt) {
+        if(this.state == "initialised") {
+            this.state = "instructions2";
+            this.clickSfx.play();
+        } else if(this.state == "instructions2") {
+            this.startGame();
+            this.clickSfx.play();
+        } else if(this.state == "gameover" || this.state == "complete") {
+            this.restart();
+            this.clickSfx.play();
+        }
         if(this.state != "ready") {
             return;
         }
@@ -500,6 +725,7 @@ class Game {
         for(let button of this.buttons) {
             if(button.hitTest(loc)) {
                 this.bear.iceberg = null;
+                this.jumpSfx.play();
                 switch(i) {
                     case 0:
                         this.bear.anim = "left";
