@@ -366,7 +366,18 @@ class Game {
     };
     
     drawPlatforms() {
+        let frame;
+        for(let i = 0; i < this.bitsData.frames.length; i++) {
+            if(this.bitsData.frames[i].fileName == "platform.png") {
+                frame = this.bitsData.frames[i].frame;
+                break;
+            }
+        }
         
+        for(let i = 0; i < this.bitsData.platforms.length; i++) {
+            let platform = this.bitsData.platforms[i];
+            this.context.drawImage(this.bitsImage, frame.x, frame.y, frame.w, frame.h, platform.x + this.position.x, platform.y + this.position.y, frame.w, frame.h);
+        }
     }
     
     drawDiamonds() {
