@@ -236,11 +236,39 @@ class Game {
     }
     
     animNamed(name) {
-        
+        for(let i = 0;i < this.anims.length; i++) {
+            if(this.anims[i].name == name) {
+                return this.anims[i];
+            }
+        }
+        return null;
     }
     
     setAction(spriteName, animName, flipped) {
-        
+        let anim = this.animNamed(animName);
+        anim.reset();
+        anim.y = this[spriteName].y;
+        this.[spriteName].anim = anim;
+        if(flipped != null) {
+            this[spriteName].flipped = flipped;
+            if(spriteName == "xbloke") {
+                switch(animName) {
+                    case "walk":
+                    case "land":
+                    case "landrest":
+                    case "ambient":
+                    case "dance":
+                    case "run":
+                    case "lookback":
+                    case "lookforward":
+                        this.xbloke.onground = true;
+                        break;
+                    default:
+                        this.xbloke.onground = false;
+                }
+            }
+            return anim;
+        }
     }
     
     checkFloor() {
