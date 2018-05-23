@@ -26,11 +26,50 @@ class Game {
     }
     
     load() {
+        this.assets = {xbloke: false, background: false, bits: false};
+        const game = this;
         
+        this.loadJSON("xbloke", function(data) {
+            game.spriteData = JSON.parse(data);
+            let imageSrc = game.spriteData.meta.image;
+            game.spriteImage = new Image();
+            game.spriteImage.onload = function() {
+                game.assets.xbloke = true;
+                if(game.assesLoaded()) {
+                    game.init();
+                }
+            }
+            game.spriteImage.src = imageSrc;
+        });
+        this.loadJSON("bits", function(data) {
+            game.bitsData = JSON.parse(data);
+            let imageSrc = game.bitsData.meta.image;
+            game.bitsImage = new Image();
+            game.bitsImage.onload = function() {
+                game.assets.bits = true;
+                if(game.assetsLoaded()) {
+                    game.init();
+                }
+            }
+            game.bitsImage.src = imageSrc;
+        });
+        this.background = new Image();
+        this.background.onload = function() {
+            game.assets.background = true;
+            if(game.assetsLoaded()) {
+                game.init();
+            }
+        }
+        game.background.src = "background.jpg";
     }
     
     assetsLoaded() {
-        
+        for(let prop in this.assets) {
+            if(!this.assets[prop]) {
+                return false;
+            }
+        }
+        return true;
     }
     
     // Loads the sprite data json file
