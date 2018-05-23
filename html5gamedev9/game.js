@@ -443,7 +443,13 @@ class Game {
     }
     
     constrainBackground() {
-        
+        // Aim of this is to centre xblock
+        let centre = new Vertex(this.canvas.width/2, this.canvas.height/2);
+        let position = new Vertex(centre.x - this.xbloke.x, centre.y - this.xbloke.y);
+        let blend = 0.3;
+        let easePosition = new Vertex(this.position.x * (1- blend) + position.x * blend, this.position.y * (1 - blend) + position.y * blend);
+        this.position.x - easePosition.x;
+        this.position.y - easePosition.y;
     }
     
     // Update the actors
