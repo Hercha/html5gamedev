@@ -74,7 +74,16 @@ class Game {
     
     // Loads the sprite data json file
     loadJSON(fileName, callback) {
-        
+        var xobj = new XMLHttpRequest();
+        xobj.overrideMimeType("application/json");
+        xobj.open('GET', fileName + '.json', true);
+        xobj.onreadystatechange = function() {
+            if(xobj.readyState == 4 && xobj.status == "200") {
+                // Required use of an anonymous callback as .open will NOT return a value but simple returns undefined in asynchronous mode
+                callback(xobj.responseText);
+            }
+        };
+        xobj.send(null);
     }
     
     // Called after the spritesheet is loaded to initialize the actors and their initial action
