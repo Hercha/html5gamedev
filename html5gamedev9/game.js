@@ -35,7 +35,7 @@ class Game {
             game.spriteImage = new Image();
             game.spriteImage.onload = function() {
                 game.assets.xbloke = true;
-                if(game.assesLoaded()) {
+                if(game.assetsLoaded()) {
                     game.init();
                 }
             }
@@ -79,14 +79,14 @@ class Game {
         xobj.open('GET', fileName + '.json', true);
         xobj.onreadystatechange = function() {
             if(xobj.readyState == 4 && xobj.status == "200") {
-                // Required use of an anonymous callback as .open will NOT return a value but simple returns undefined in asynchronous mode
+                // Required use of an anonymous callback as .open will NOT return a value but simply returns undefined in asynchronous mode
                 callback(xobj.responseText);
             }
         };
         xobj.send(null);
     }
     
-    // Called after the spritesheet is loaded to initialize the actors and their initial action
+    // Called after the spritesheet is loaded to initialise the actors and their initial action
     init() {
         this.position = {x: 0, y: -120, width: this.canvas.width};
         
@@ -106,7 +106,7 @@ class Game {
         this.anims.push(new Anim("jump", {frameData:this.spriteData.frames, frames:[41,"..",58], motion:{x:100, easing:{type:"outQuad", change:-150, duration:18/30}}, loop:false, oncomplete:function(){
             game.setAction("xbloke", "drop");
         }}));
-        this.anims.push(new Anim("drop", {frameData:this.spriteData.frames, frames:[59,"..",73], motion:{x:150, easing:{type:"intQuad", change:150, duration:18/30}}, loop:false, oncomplete:function(){
+        this.anims.push(new Anim("drop", {frameData:this.spriteData.frames, frames:[59,"..",73], motion:{x:150, easing:{type:"inQuad", change:150, duration:18/30}}, loop:false, oncomplete:function(){
             game.checkFloor();
         }}));
         this.anims.push(new Anim("land", {frameData:this.spriteData.frames, frames:[74,"..",87], loop:false, oncomplete:function(){
@@ -120,7 +120,7 @@ class Game {
             game.setAction("xbloke", "ambient");
         }}));
         this.anims.push(new Anim("ambient", {frameData:this.spriteData.frames, frames:[101,"..",575]}));
-        this.anims.push(new Anim("kick", {frameData:this.spriteData.frames, frames:[580,"..",605], motion:{x:50, easing:{type:"projektile", change:-30, duration:25/30}}, loop:false, oncomplete:function(){
+        this.anims.push(new Anim("kick", {frameData:this.spriteData.frames, frames:[580,"..",605], motion:{x:50, easing:{type:"projectile", change:-30, duration:25/30}}, loop:false, oncomplete:function(){
             game.checkFloor();
             game.setAction("xbloke", "ambient");
         }}));
@@ -180,7 +180,7 @@ class Game {
             if(elapsedTime < 500) {
                 // Double click
                 if(this.xbloke.onground) {
-                    if(mousPos.y > this.canvas.height / 2) {
+                    if(mousePos.y > this.canvas.height / 2) {
                         this.setAction("xbloke", "kick", flipped);
                     } else {
                         this.setAction("xbloke", "jump", flipped);
@@ -248,27 +248,27 @@ class Game {
         let anim = this.animNamed(animName);
         anim.reset();
         anim.y = this[spriteName].y;
-        this.[spriteName].anim = anim;
+        this[spriteName].anim = anim;
         if(flipped != null) {
             this[spriteName].flipped = flipped;
-            if(spriteName == "xbloke") {
-                switch(animName) {
-                    case "walk":
-                    case "land":
-                    case "landrest":
-                    case "ambient":
-                    case "dance":
-                    case "run":
-                    case "lookback":
-                    case "lookforward":
-                        this.xbloke.onground = true;
-                        break;
-                    default:
-                        this.xbloke.onground = false;
-                }
-            }
-            return anim;
         }
+        if(spriteName == "xbloke") {
+            switch(animName) {
+                case "walk":
+                case "land":
+                case "landrest":
+                case "ambient":
+                case "dance":
+                case "run":
+                case "lookback":
+                case "lookforward":
+                    this.xbloke.onground = true;
+                    break;
+                default:
+                    this.xbloke.onground = false;
+            }
+        }
+        return anim;
     }
     
     checkFloor() {
@@ -286,7 +286,7 @@ class Game {
                     let platform = this.bitsData.platforms[i];
                     let frame;
                     for(let j = 0; j < this.bitsData.frames.length; j++) {
-                        if(this.bitsData.frames[j].fileName == platform.filename) {
+                        if(this.bitsData.frames[j].filename == platform.filename) {
                             frame = this.bitsData.frames[j].frame;
                             break;
                         }
@@ -310,7 +310,7 @@ class Game {
             for(let i = 0; i < this.bitsData.platforms.length; i++) {
                 let platform = this.bitsData.platforms[i];
                 let frame;
-                for(let j = 0; j < this.bitsdata.frames.length; j++) {
+                for(let j = 0; j < this.bitsData.frames.length; j++) {
                     if(this.bitsData.frames[j].filename == platform.filename) {
                         frame = this.bitsData.frames[j].frame;
                         break;
@@ -368,7 +368,7 @@ class Game {
     drawPlatforms() {
         let frame;
         for(let i = 0; i < this.bitsData.frames.length; i++) {
-            if(this.bitsData.frames[i].fileName == "platform.png") {
+            if(this.bitsData.frames[i].filename == "platform.png") {
                 frame = this.bitsData.frames[i].frame;
                 break;
             }
@@ -383,7 +383,7 @@ class Game {
     drawDiamonds() {
         let frame;
         for(let i = 0; i < this.bitsData.frames.length; i++) {
-            if(this.bitsData.frames[i].fileName == "diamond.png") {
+            if(this.bitsData.frames[i].filename == "diamond.png") {
                 frame = this.bitsData.frames[i].frame;
                 break;
             }
@@ -394,14 +394,14 @@ class Game {
         for(let i =0; i < this.bitsData.diamonds.length; i++) {
             let diamond = this.bitsData.diamonds[i];
             if(diamond.found == null) {
-                this.context.drawImage(this.bitsImage, frame.x, frame.y, frame.w, frame.h diamond.x + this.position.x, diamond.y + this.position.y, frame.w * scale, frame.h * scale);
+                this.context.drawImage(this.bitsImage, frame.x, frame.y, frame.w, frame.h, diamond.x + this.position.x, diamond.y + this.position.y, frame.w * scale, frame.h * scale);
             } else if(diamond.hidden == null) {
                 let elapsedTime = Date.now() - diamond.findTime;
                 let opacity = 1.0 - elapsedTime / 1000.0;
                 if(opacity > 0) {
                     let frame;
                     for(let i =0; i < this.bitsData.frames.length; i++) {
-                        if(this.bitsData.frames[i].fileName == "blank.png") {
+                        if(this.bitsData.frames[i].filename == "blank.png") {
                             frame = this.bitsData.frames[i].frame;
                             break;
                         }
@@ -425,7 +425,7 @@ class Game {
             let diamond = this.bitsData.diamonds[i];
             let frame;
             for(let j = 0; j < this.bitsData.frames.length; j++) {
-                if(this.bitsData.frames[j].fileName == diamond.filename) {
+                if(this.bitsData.frames[j].filename == diamond.filename) {
                     frame = this.bitsData.frames[j].frame;
                     break;
                 }
@@ -443,16 +443,22 @@ class Game {
     }
     
     constrainBackground() {
-        // Aim of this is to centre xblock
+        // Aim of this is to centre xbloke
         let centre = new Vertex(this.canvas.width/2, this.canvas.height/2);
         let position = new Vertex(centre.x - this.xbloke.x, centre.y - this.xbloke.y);
         let blend = 0.3;
         let easePosition = new Vertex(this.position.x * (1- blend) + position.x * blend, this.position.y * (1 - blend) + position.y * blend);
+        if(easePosition.y > 0) {
+            easePosition.y = 0;
+        }
+        if((easePosition.y + this.background.height)<this.canvas.height) {
+            easePosition.y = this.canvas.height - this.background.height;
+        }
         this.position.x - easePosition.x;
         this.position.y - easePosition.y;
     }
     
-    // Update the actors
+    // Updates the actors
     update(dt) {
         this.xbloke.update(dt);
         this.constrainBackground();
