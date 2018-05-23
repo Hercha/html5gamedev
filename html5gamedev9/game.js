@@ -337,8 +337,33 @@ class Game {
     
     // Triggers an update and render
     refresh() {
+        var now = Date.now();
+        var dt = (now - this.lastTime) / 1000.0;
         
-    }
+        this.update(dt);
+        this.render();
+        
+        if(this.mouseData != null && this.mouseData.down) {
+            if(now - this.mouseData.clickTime > 1000 && this.xbloke.animName == "walk") {
+                this.setAction("xbloke", "run");
+            }
+        } else if( this.xbloke.animName == "slowdown") {
+            this.xbloke._anim.motion.x *= 0.99;
+            if(this.xbloke._anim.motion.x < 50) {
+                this.setAction("xbloke", "ambient", this.xbloke.flipped);
+            }
+        }
+        
+        if(this.xbloke.moving && !this.xbloke.jumping) {
+            this.checkFloor();
+        }
+        
+        const game = this;
+        this.lastTime = now;
+        requestAnimationFrame(function() {
+            game.refresh(); 
+        });
+    };
     
     drawPlatforms() {
         
