@@ -205,7 +205,28 @@ class Game {
     }
     
     checkLine(row, col, black, dirX, dirY) {
-        
+        let line = [];
+        let found;
+        do {
+            row += dirY;
+            col += dirx;
+            if(!this.boundaryCheck(row, col)) {
+                return [];
+            }
+            let tile = this.tileAt(row, col);
+            if(tile == null) {
+                return [];
+            }
+            found = false;
+            if(this.checkTile(tile, black)) {
+                line.push(tile);
+                found = true;
+            } else {
+                // Must be tile of opposite color so return
+                break;
+            }
+        } while(found);
+        return line;
     }
     
     getFlips(row, col, black) {
