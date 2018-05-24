@@ -343,7 +343,24 @@ class Game {
     }
     
     refresh() {
+        if(this.state == "computer") {
+            if(!this.computerMove()) {
+                this.state = "gameover";
+            }
+        }
         
+        const now = Date.now();
+        const dt =(now - this.lastRefreshTime) / 1000.0;
+        
+        this.update(dt);
+        this.render();
+        
+        this.lastRefreshTime = now;
+        
+        const game = this;
+        requestAnimationFrame(function() {
+            game.refresh(); 
+        });
     }
     
     update(dt) {
