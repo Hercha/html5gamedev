@@ -260,7 +260,66 @@ class Game {
     }
     
     computerMove() {
+        // Capture board
+        let tiles = [];
+        // let str = "";
+        for(let sprite of this.sprites) {
+            sprite.update(0);
+            const black = (sprite._anim.name == "black");
+            if(sprite._anim.name != "white" && sprite._anim.name != "black") {
+                console.log("Indeterminate tile");
+            }
+            const tile = new Tile(sprite.row, sprite.col, black);
+            tiles.push(tile);
+            // str += (str == "") ? `[${tile.toString()}]` : `[${tile.toString()}]`;
+        }
+        // console.log(str);
+        let boards = [];
+        for(let row = 0; row < 8; row++) {
+            for(let col = 0; col< 8; col++) {
+                if(this.legalMove(row, col)) {
+                    const board = new Board(tiles);
+                    board.insertTile(row,col);
+                    boards.push(board);
+                }
+            }
+        }
         
+        if(boards.length > 0) {
+            // Find the best score for this move
+            let index = 0;
+            let score = -1000;
+            let bestBoard;
+            for(let board of boards) {
+                const bscore = board.score.black - board.score.white;
+                // console.log(`computerMove board score:${bscore} best score:${score}`);
+                if(bscore > score || (bscore == score && Math.random() > 0.5)) {
+                    score = bscore;
+                    bestBoard = board;
+                }
+            }
+            const t = bestBoard.tiles[bestBoard.tiles.length - 1];
+            this.computer = {row: t.row, col: t.col};
+            this.legalMove(t.row, t.col);
+            const tile = this.newtile(t.row, t.col);
+            tile.update(0);
+            this.sprites.push(tile);
+            if(this.sprites.length < 4) {
+                this.state = "player";
+            } else {
+                for(let tile of this.flips) {
+                    tile.anim = "toblack";
+                }
+                if(this.flips.length == 0) {
+                    console.log("Something went wrong!");
+                }
+                this.flipcount = 0;
+                this.clickSfx.play();
+                this.state = "computer_flip";
+            }
+            return true;
+        }
+        return false; // No moves available
     }
     
     legalMove(row, col, black = true) {
