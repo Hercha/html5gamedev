@@ -93,7 +93,40 @@ class Game {
     }
     
     init() {
+       const cellsize = this.canvas.height/8;
+        let scale = cellsize/this.config.tilesize;
         
+        const x = this.canvas.width - (this.canvas.width - cellsize*8)/2;
+        scale /= 1.5;
+        
+        const options = {
+            game: this,
+            frame: "tile_{03}.png",
+            index: 10,
+            x: x,
+            y: cellsize/2,
+            scale: scale
+        }
+        this.ui.push(new Sprite("white", options));
+        options.index = 1;
+        options.y = cellsize/2 + cellsize;
+        this.ui.push(new Sprite("black", options));
+        
+        const gamne = this;
+        
+        if('ontouchstart' in window) {
+            this.canvas.addEventListener("touchstart", function(event) {
+               game.tap(event); 
+            });
+        } else {
+            this.canvas.addEventListener("mousedown", function(event) {
+               game.tap(event); 
+            });
+        }
+        
+        this.state = "player";
+        
+        this.refresh();
     }
     
     get padding() {
