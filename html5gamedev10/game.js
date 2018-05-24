@@ -636,10 +636,12 @@ class Board {
 
 class Tile {
     constructor(row, col, black) {
-        
+        this.row = row;
+        this.col = col;
+        this.black = black;
     }
     
     toString() {
-        
+        return `${this.row}, ${this.col}, ${this.black}`;
     }
 }
