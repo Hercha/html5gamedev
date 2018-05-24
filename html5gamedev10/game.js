@@ -600,7 +600,22 @@ class Board {
     }
     
     cellWeight(row, col) {
-        
+        if((row == 0 || row == 7) && (col == 0 || col == 7)) {
+            // Corner
+            return 15;
+        } else if((row == 3 || row == 4) && (col == 3 || col == 4)) {
+            // Middle
+            return 5;
+        } else if((row == 1 || row == 6) && (col == 1 || col == 6)) {
+            // Adjancent to corner
+            return -8;
+        } else if(row == 0 || row == 7 || col ==0 || col == 7) {
+            return 8;
+        } else if(row == 1 || row == 6 || col == 1 || col == 6) {
+            return -4;
+        } else {
+            return 1;
+        }
     }
     
     get score () {
