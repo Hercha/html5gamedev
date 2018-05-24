@@ -12,7 +12,7 @@ class Game {
         
         this.clickSfx = new SFX({
             context: this.audioContext,
-            crc: {mp3: "sfx/click.mp3", webm: "sfx/click.webm"},
+            src: {mp3: "sfx/click.mp3", webm: "sfx/click.webm"},
             loop: false,
             volume: 0.3
         });
@@ -28,7 +28,7 @@ class Game {
         this.resize();
         
         const game = this;
-        this.loadJSON("reverse1", function(data, game) {
+        this.loadJSON("reversi", function(data, game) {
             game.spriteData = JSON.parse(data);
             game.spriteImage = new Image();
             game.spriteImage.src = game.spriteData.meta.image;
@@ -47,7 +47,7 @@ class Game {
         const game = this;
         xobj.onreadystatechange = function (){
             if(xobj.readyState == 4 && xobj.status == "200") {
-                callback(xobj.responseText, game):
+                callback(xobj.responseText, game);
             }
         };
         xobj.send(null);
@@ -60,20 +60,20 @@ class Game {
         
         if(width/height > aspect) {
             // Use height as cell size
-            this.canvas.width = width;
             this.canvas.height = height;
+            this.canvas.width = height * aspect;
         } else {
             // Use width for cell size
             this.canvas.width = width;
-            this.canvas.height = height;
+            this.canvas.height = width/aspect;
         }
         
         const cellsize = this.canvas.height/8;
         let scale = cellsize/this.config.tilesize;
         
         for(let sprite of this.sprites) {
-            sprite.x = sprite.col * cellsize/2;
-            sprite.y = sprite.row * cellsize/2;
+            sprite.x = sprite.col * cellsize + cellsize/2;
+            sprite.y = sprite.row * cellsize + cellsize/2;
             sprite.scale = scale;
         }
         
@@ -112,7 +112,7 @@ class Game {
         options.y = cellsize/2 + cellsize;
         this.ui.push(new Sprite("black", options));
         
-        const gamne = this;
+        const game = this;
         
         if('ontouchstart' in window) {
             this.canvas.addEventListener("touchstart", function(event) {
@@ -140,7 +140,7 @@ class Game {
     newtile(row, col, black = true) {
         const fps = 25;
         const game = this;
-        // Create tile anim
+        // Create tile anims
         let anims = [];
         anims.push(new Anim("black", {frameData:this.spriteData.frames, frames:[1], loop:false, fps: fps}));
         anims.push(new Anim("white", {frameData:this.spriteData.frames, frames:[10], loop:false, fps: fps}));
@@ -150,7 +150,7 @@ class Game {
         const cellsize = this.cellsize;
         const offset = this.padding + cellsize/2;
         const scale = cellsize/this.config.tilesize;
-        const anim = {black} ? "black" : "white";
+        const anim = (black) ? "black" : "white";
         const options = {
             game: this,
             scale: scale,
@@ -180,7 +180,7 @@ class Game {
                 this.state = "computer";
             } else {
                 if(!this.checkPlayerMoves()) {
-                    this.state = "ganeover":
+                    this.state = "gameover";
                 } else {
                     this.state = "player";
                 }
@@ -209,7 +209,7 @@ class Game {
         let found;
         do {
             row += dirY;
-            col += dirx;
+            col += dirX;
             if(!this.boundaryCheck(row, col)) {
                 return [];
             }
@@ -237,7 +237,7 @@ class Game {
                     continue;
                 }
                 const line = this.checkLine(row, col, black, dirX, dirY);
-                if(line != null && line.height > 0) {
+                if(line != null && line.length > 0) {
                     flips = flips.concat(line);
                 }
             }
@@ -271,7 +271,7 @@ class Game {
             }
             const tile = new Tile(sprite.row, sprite.col, black);
             tiles.push(tile);
-            // str += (str == "") ? `[${tile.toString()}]` : `[${tile.toString()}]`;
+            // str += (str == "") ? `[${tile.toString()}]` : `,[${tile.toString()}]`;
         }
         // console.log(str);
         let boards = [];
@@ -288,7 +288,7 @@ class Game {
         if(boards.length > 0) {
             // Find the best score for this move
             let index = 0;
-            let score = -1000;
+            let score = -10000;
             let bestBoard;
             for(let board of boards) {
                 const bscore = board.score.black - board.score.white;
@@ -304,7 +304,7 @@ class Game {
             const tile = this.newtile(t.row, t.col);
             tile.update(0);
             this.sprites.push(tile);
-            if(this.sprites.length < 4) {
+            if(this.sprites.length <= 4) {
                 this.state = "player";
             } else {
                 for(let tile of this.flips) {
@@ -329,8 +329,8 @@ class Game {
             }
         }
         
-        if(this.sprite.length < 4) {
-            return (row >= 3 && row <= 4 && col <= 4);
+        if(this.sprites.length < 4) {
+            return (row >= 3 && row <= 4 && col >= 3 && col <= 4);
         } else {
             return ((this.getFlips(row, col, !black)).length > 0);
         }
@@ -369,6 +369,10 @@ class Game {
             if(sprite == null) {
                 continue;
             }
+            sprite.update(dt);
+            if(this.checkTile(sprite, false)) {
+                count++;
+            }
         }
         for(let sprite of this.ui) {
             if(sprite == null) {
@@ -384,15 +388,15 @@ class Game {
             return;
         }
         
-        this.context.clearRect(0,0 this.canvas.width, this.canvas.height);
+        this.context.clearRect(0,0, this.canvas.width, this.canvas.height);
         
         const cellsize = this.cellsize;
         const padding = this.padding;
         const frame = this.spriteData.frames[0].frame;
         
-        for(let x = padding-cellsize, col =-1, x < this.canvas.width; x += cellsize, col++;) {
+        for(let x = padding-cellsize, col =-1; x < this.canvas.width; x += cellsize, col++) {
             for(let y = padding-cellsize, row =-1; y < this.canvas.height; y += cellsize, row++) {
-                this.context.globalAlpha = ((row >= 3 && row <= 4 && col >=4) || (row == this.computer.row && col == this.computer.col)) ? 0.7 : 1.0;
+                this.context.globalAlpha = ((row >= 3 && row <= 4 && col >=3 && col<=4) || (row == this.computer.row && col == this.computer.col)) ? 0.7 : 1.0;
                 this.context.drawImage(this.spriteImage, frame.x, frame.y, frame.w, frame.h, x, y, cellsize, cellsize);
             }
         }
@@ -445,7 +449,7 @@ class Game {
             this.context.fillRect(0, rect.y -fontSize * 1.5, this.canvas.width, fontSize * 5);
             this.context.globalAlpha = 1.0;
             const computercount = this.sprites.length - this.whitecount;
-            const str = (computercount > this.whitecount) ? "Game Over. \nComputer wins.\nClick to play again." : "Game over.\nClick to play again";
+            const str = (computercount > this.whitecount) ? "Game Over. \nComputer wins.\nClick to play again." : "Game Over.\nClick to play again";
             const options = {
                 color: "#550",
                 font: "Verdana",
