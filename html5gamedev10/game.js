@@ -54,7 +54,42 @@ class Game {
     }
     
     resize() {
+        const width = window.innerWidth;
+        const height = window.innerHeight;
+        const aspect = 1.1;
         
+        if(width/height > aspect) {
+            // Use height as cell size
+            this.canvas.width = width;
+            this.canvas.height = height;
+        } else {
+            // Use width for cell size
+            this.canvas.width = width;
+            this.canvas.height = height;
+        }
+        
+        const cellsize = this.canvas.height/8;
+        let scale = cellsize/this.config.tilesize;
+        
+        for(let sprite of this.sprites) {
+            sprite.x = sprite.col * cellsize/2;
+            sprite.y = sprite.row * cellsize/2;
+            sprite.scale = scale;
+        }
+        
+        const x = this.canvas.width - (this.canvas.width - cellsize*8)/2;
+        scale /= 1.5;
+        
+        let i = 0;
+        for(let sprite of this.ui) {
+            sprite.x = x;
+            sprite.y = cellsize/2 + i * cellsize;
+            sprite.scale = scale;
+            i++;
+        }
+        
+        this.update();
+        this.render();
     }
     
     init() {
