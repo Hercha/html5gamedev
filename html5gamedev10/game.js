@@ -619,7 +619,18 @@ class Board {
     }
     
     get score () {
+        let white = 0;
+        let black = 0;
+        for(let tile of this.tiles) {
+            const weight = this.cellWeight(tile.row, tile.col);
+            if(tile.black) {
+                black += weight;
+            } else {
+                white += weight;
+            }
+        }
         
+        return {white, black};
     }
 }
 
