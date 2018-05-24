@@ -380,7 +380,80 @@ class Game {
     }
     
     render() {
+        if(this.state == "loading") {
+            return;
+        }
         
+        this.context.clearRect(0,0 this.canvas.width, this.canvas.height);
+        
+        const cellsize = this.cellsize;
+        const padding = this.padding;
+        const frame = this.spriteData.frames[0].frame;
+        
+        for(let x = padding-cellsize, col =-1, x < this.canvas.width; x += cellsize, col++;) {
+            for(let y = padding-cellsize, row =-1; y < this.canvas.height; y += cellsize, row++) {
+                this.context.globalAlpha = ((row >= 3 && row <= 4 && col >=4) || (row == this.computer.row && col == this.computer.col)) ? 0.7 : 1.0;
+                this.context.drawImage(this.spriteImage, frame.x, frame.y, frame.w, frame.h, x, y, cellsize, cellsize);
+            }
+        }
+        const len = cellsize * 8;
+        
+        this.context.beginPath();
+        this.context.strokeStyle = "#550";
+        this.context.lineWidth = cellsize / 40;
+        
+        for(let i = 0; i <= 8; i++) {
+            const pos = i * cellsize + padding;
+            this.context.moveTo(padding, pos);
+            this.context.lineTo(len + padding, pos);
+            this.context.moveTo(pos, padding);
+            this.context.lineTo(pos, len + padding);
+        }
+        this.context.stroke();
+        
+        for(let sprite of this.sprites) {
+            sprite.render();
+        }
+        
+        let fontSize = cellsize / 3;
+        this.context.fillStyle = "#fff";
+        this.context.font = `${fontSize}px Verdana`;
+        
+        let i = 0;
+        for(let sprite of this.ui) {
+            sprite.render();
+            let count;
+            switch(i) {
+                case 0:
+                    count = this.whitecount;
+                    break;
+                case 1:
+                    count = this.sprites.length - this.whitecount;
+                    break;
+            }
+            let str = new String(count);
+            let txt = this.context.measureText(str);
+            this.context.fillText(str, sprite.x - txt.width / 2, sprite.y + cellsize / 1.5);
+            i++;
+        }
+        
+        if(this.state == "gameover") {
+            const fontSize = this.canvas.height / 20;
+            const rect = new Rect(this.canvas.width / 2 - this.canvas.width / 6, this.canvas.height / 2 - this.canvas.height / 8, this.canvas.width / 3, this.canvas.height / 3);
+            this.context.globalAlpha = 0.5;
+            this.context.fillStyle = "#fff";
+            this.context.fillRect(0, rect.y -fontSize * 1.5, this.canvas.width, fontSize * 5);
+            this.context.globalAlpha = 1.0;
+            const computercount = this.sprites.length - this.whitecount;
+            const str = (computercount > this.whitecount) ? "Game Over. \nComputer wins.\nClick to play again." : "Game over.\nClick to play again";
+            const options = {
+                color: "#550",
+                font: "Verdana",
+                fontSize: fontSize,
+                lineHeight: fontSize * 1.2
+            }
+            const text = new TextBlock(this.context, str, rect, options);
+        }
     }
     
     getMousePos(evt) {
