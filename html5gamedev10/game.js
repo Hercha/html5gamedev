@@ -337,7 +337,9 @@ class Game {
     }
     
     newGame() {
-        
+        this.whitecount = 0;
+        this.sprites = [];
+        this.state = "player";
     }
     
     refresh() {
