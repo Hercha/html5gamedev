@@ -130,11 +130,11 @@ class Game {
     }
     
     get padding() {
-        
+        return this.canvas.height/50;
     }
     
     get cellsize() {
-        
+        return (this.canvas.height - this.padding*2)/8;
     }
     
     newtile(row, col, black = true) {
