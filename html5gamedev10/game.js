@@ -144,8 +144,8 @@ class Game {
         let anims = [];
         anims.push(new Anim("black", {frameData:this.spriteData.frames, frames:[1], loop:false, fps: fps}));
         anims.push(new Anim("white", {frameData:this.spriteData.frames, frames:[10], loop:false, fps: fps}));
-        anims.push(new Anim("towhite", {frameData:this.spriteData.frames, frames:[1,"..",10], loop:false, fps: fps, oncomplete() {game.flipComplete(this, " white"); }}));
-        anims.push(new Anim("toblack", {frameData:this.spriteData.frames, frames:[10,"r..",1], loop:false, fps: fps, oncomplete() {game.flipComplete(this, " black"); }}));
+        anims.push(new Anim("towhite", {frameData:this.spriteData.frames, frames:[1,"..",10], loop:false, fps: fps, oncomplete() {game.flipComplete(this, "white"); }}));
+        anims.push(new Anim("toblack", {frameData:this.spriteData.frames, frames:[10,"r..",1], loop:false, fps: fps, oncomplete() {game.flipComplete(this, "black"); }}));
         
         const cellsize = this.cellsize;
         const offset = this.padding + cellsize/2;
@@ -361,7 +361,7 @@ class Game {
         requestAnimationFrame(function() {
             game.refresh(); 
         });
-    }
+    };
     
     update(dt) {
         let count = 0;
@@ -633,7 +633,6 @@ class Board {
                 white += weight;
             }
         }
-        
         return {white, black};
     }
 }
