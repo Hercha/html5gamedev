@@ -557,7 +557,20 @@ class Board {
     }
     
     getFlips(row, col, black) {
-        
+        let flips = [];
+        for(let dirX =- 1; dirX <=1; dirX++) {
+            for(let dirY =-1; dirY <= 1; dirY++) {
+                if(dirX == 0 && dirY == 0) {
+                    continue;
+                }
+                const line = this.checkLine(row, col, black, dirX, dirY);
+                if(line != null && line.length > 0) {
+                    flips = flips.concat(line);
+                }
+            }
+        }
+        this.flips = flips; // Store for later use
+        return flips;
     }
     
     insertTile(row, col, black = true) {
