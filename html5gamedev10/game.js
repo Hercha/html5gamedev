@@ -138,7 +138,33 @@ class Game {
     }
     
     newtile(row, col, black = true) {
+        const fps = 25;
+        const game = this;
+        // Create tile anim
+        let anims = [];
+        anims.push(new Anim("black", {frameData:this.spriteData.frames, frames:[1], loop:false, fps: fps}));
+        anims.push(new Anim("white", {frameData:this.spriteData.frames, frames:[10], loop:false, fps: fps}));
+        anims.push(new Anim("towhite", {frameData:this.spriteData.frames, frames:[1,"..",10], loop:false, fps: fps, oncomplete() {game.flipComplete(this, " white"); }}));
+        anims.push(new Anim("toblack", {frameData:this.spriteData.frames, frames:[10,"r..",1], loop:false, fps: fps, oncomplete() {game.flipComplete(this, " black"); }}));
         
+        const cellsize = this.cellsize;
+        const offset = this.padding + cellsize/2;
+        const scale = cellsize/this.config.tilesize;
+        const anim = {black} ? "black" : "white";
+        const options = {
+            game: this,
+            scale: scale,
+            anims: anims,
+            x: offset + cellsize * col,
+            y: offset + cellsize * row,
+            anim: anim
+        }
+        
+        const tile = new AnimSprite("tile", options);
+        tile.row = row;
+        tile.col = col;
+        
+        return tile;
     }
     
     flipComplete(anim, animName) {
