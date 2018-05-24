@@ -247,7 +247,16 @@ class Game {
     }
     
     checkPlayerMoves() {
-        
+        let result = false;
+        for(let row = 0; row < 8; row++) {
+            for(let col = 0; col < 8; col++) {
+                if(this.legalMove(row, col, false)) {
+                    result = true;
+                    break;
+                }
+            }
+        }
+        return result;
     }
     
     computerMove() {
