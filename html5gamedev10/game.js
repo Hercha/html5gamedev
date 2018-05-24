@@ -168,7 +168,24 @@ class Game {
     }
     
     flipComplete(anim, animName) {
-        
+        for(let sprite of this.sprites) {
+            if(sprite.anim == anim) {
+                sprite.anim = animName;
+                break;
+            }
+        }
+        this.flipcount++;
+        if(this.flipcount == this.flips.length) {
+            if(this.state == "player_flip") {
+                this.state = "computer";
+            } else {
+                if(!this.checkPlayerMoves()) {
+                    this.state = "ganeover":
+                } else {
+                    this.state = "player";
+                }
+            }
+        }
     }
     
     tileAt(row,col) {
