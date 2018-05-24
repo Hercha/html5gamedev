@@ -467,7 +467,41 @@ class Game {
     }
     
     tap(evt) {
+        if(this.state == "gameover") {
+            this.newGame();
+            return;
+        } else if (this.state !="player") {
+            return;
+        }
         
+        const mousePos = this.getMousePos(evt);
+        const canvasScale = this.canvas.width / this.canvas.offsetWidth;
+        const loc = {};
+        
+        loc.x = mousePos.x * canvasScale;
+        loc.y = mousePos.y * canvasScale;
+        
+        const padding = this.padding;
+        const cellsize = this.cellsize;
+        
+        const row = Math.floor((loc.y - padding) / cellsize);
+        const col = Math.floor((loc.x - padding) / cellsize);
+        
+        if(this.legalMove(row, col, false)) {
+            this.sprites.push(this.newtile(row, col, false));
+            if(this.sprites.length < 4) {
+                this.state = "computer";
+            } else {
+                for(let tile of this.flips) {
+                    tile.anim = "towhite";
+                }
+                this.flipcount = 0;
+                this.state = "player_flip";
+            }
+            this.clickSfx.play();
+        } else {
+            this.errorSfx.play();
+        }
     }
 }
 
