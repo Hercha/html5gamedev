@@ -586,7 +586,17 @@ class Board {
     }
     
     legalMove(row, col, black = true) {
+        for(let tile of this.tiles) {
+            if(tile.row == row && tile.col == col) {
+                return false;
+            }
+        }
         
+        if(this.tiles.length < 4) {
+            return (row >= 3 && row <= 4 && col >= 3 && col <= 4);
+        } else {
+            return ((this.getFlips(row, col, !black)).length > 0);
+        }
     }
     
     cellWeight(row, col) {
