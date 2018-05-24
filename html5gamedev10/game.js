@@ -574,7 +574,15 @@ class Board {
     }
     
     insertTile(row, col, black = true) {
-        
+        if(this.legalMove(row, col, black)) {
+            const tile = new Tile(row, col, black);
+            this.tiles.push(tile);
+            if(this.tiles.length > 4) {
+                for(let tile of this.flips) {
+                    tile.black = black;
+                }
+            }
+        }
     }
     
     legalMove(row, col, black = true) {
