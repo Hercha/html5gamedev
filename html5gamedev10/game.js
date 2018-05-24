@@ -507,23 +507,53 @@ class Game {
 
 class Board {
     constructor(tiles) {
-        
+        // Copy tiles to new ones
+        this.tiles = [];
+        for(let tile of tiles) {
+            this.tiles.push(new Tile(tile.row, tile.col, tile.black));
+        }
     }
     
     tileAt(row, col) {
-        
+        for(let tile of this.tiles) {
+            if(tile.row == row && tile.col == col) {
+                return tile;
+            }
+        }
     }
     
     checkTile(tile, black) {
-        
+        return ((black && tile.black) || (!black && !tile.black));
     }
     
     boundaryCheck(row, col) {
-        
+        return (row >= 0 && row < 8 && col >=0 && col < 8);
     }
     
     checkLine(row, col, black, dirX, dirY) {
+        let line = [];
+        let found;
+        do {
+            row += dirY;
+            col += dirX;
+            if(!this.boundaryCheck(row, col)) {
+                return [];
+            }
+            let tile = this.tileAt(row, col);
+            if(tile == null) {
+                return [];
+            }
+            found = false;
+            if(this.checkTile(tile, black)) {
+                line.push(tile);
+                found = true;
+            } else {
+                // Must be tile of opposite color so return
+                break;
+            }
+        } while(found);
         
+        return line;
     }
     
     getFlips(row, col, black) {
