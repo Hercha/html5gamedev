@@ -323,7 +323,17 @@ class Game {
     }
     
     legalMove(row, col, black = true) {
+        for(let sprite of this.sprites) {
+            if(sprite.row == row && sprite.col == col) {
+                return false;
+            }
+        }
         
+        if(this.sprite.length < 4) {
+            return (row >= 3 && row <= 4 && col <= 4);
+        } else {
+            return ((this.getFlips(row, col, !black)).length > 0);
+        }
     }
     
     newGame() {
