@@ -364,7 +364,19 @@ class Game {
     }
     
     update(dt) {
-        
+        let count = 0;
+        for(let sprite of this.sprites) {
+            if(sprite == null) {
+                continue;
+            }
+        }
+        for(let sprite of this.ui) {
+            if(sprite == null) {
+                continue;
+            }
+            sprite.update(dt);
+        }
+        this.whitecount = count;
     }
     
     render() {
