@@ -189,15 +189,19 @@ class Game {
     }
     
     tileAt(row,col) {
-        
+        for(let sprite of this.sprites) {
+            if(sprite.row == row && sprite.col == col) {
+                return sprite;
+            }
+        }
     }
     
     checkTile(tile, black) {
-        
+        return ((black && tile.frameData.filename == "tile_001.png") || (!black && tile.frameData.filename == "tile_010.png"));
     }
     
     boundaryCheck(row, col) {
-        
+        return (row >= 0 && row < 8 && col >= 0 && col < 8);
     }
     
     checkLine(row, col, black, dirX, dirY) {
