@@ -41,7 +41,16 @@ class Game {
     }
     
     loadJSON(json, callback) {
-        
+        const xobj = new XMLHttpRequest();
+        xobj.overrideMimeType("application/json");
+        xobj.open('GET', json + '.json', true);
+        const game = this;
+        xobj.onreadystatechange = function (){
+            if(xobj.readyState == 4 && xobj.status == "200") {
+                callback(xobj.responseText, game):
+            }
+        };
+        xobj.send(null);
     }
     
     resize() {
